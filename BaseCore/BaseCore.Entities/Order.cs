@@ -45,6 +45,12 @@ namespace BaseCore.Entities
         // Maps to dbo.Orders(CreatedAt)
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        // Maps to dbo.Orders(DeliveryMethod)
+        public string DeliveryMethod { get; set; } = "Delivery";
+
+        // Maps to dbo.Orders(PickupTime)
+        public DateTime? PickupTime { get; set; }
+
         [JsonIgnore]
         public List<OrderItem> OrderItems { get; set; } = new();
 

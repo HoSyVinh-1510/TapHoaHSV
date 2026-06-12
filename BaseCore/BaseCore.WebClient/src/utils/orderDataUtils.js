@@ -527,6 +527,8 @@ export const findLatestBankTransferSubmission = (activityLogs = []) => {
  */
 export const getAdminOrderStatusActions = (order) => {
   const status = normalizeOrderStatus(order?.orderStatus);
+  const isPickup = order?.deliveryMethod === "Pickup";
+
   switch (status) {
     case ORDER_STATUS.WAITING_PAYMENT:
       return [{ value: ORDER_STATUS.CANCELLED, label: "Hủy đơn" }];
@@ -536,6 +538,12 @@ export const getAdminOrderStatusActions = (order) => {
         { value: ORDER_STATUS.CANCELLED, label: "Hủy đơn" },
       ];
     case ORDER_STATUS.CONFIRMED:
+      if (isPickup) {
+        return [
+          { value: ORDER_STATUS.RECEIVED, label: "Khách đã đến lấy" },
+          { value: ORDER_STATUS.CANCELLED, label: "Hủy đơn" },
+        ];
+      }
       return [
         { value: ORDER_STATUS.SHIPPING, label: "Bắt đầu giao hàng" },
         { value: ORDER_STATUS.CANCELLED, label: "Hủy đơn" },
@@ -658,6 +666,8 @@ export const normalizeOrder = (item) => ({
   paymentStatus: item?.paymentStatus ?? "",
   orderStatus: item?.orderStatus ?? "",
   createdAt: item?.createdAt ?? "",
+  deliveryMethod: item?.deliveryMethod ?? "Delivery",
+  pickupTime: item?.pickupTime ?? null,
 });
 
 export const normalizeOrderDetail = (item) => {

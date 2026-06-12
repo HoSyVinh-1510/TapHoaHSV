@@ -263,7 +263,7 @@ const PendingWithdrawals = () => {
                             </td>
                             <td>
                               <small className="text-secondary">
-                                {tx.walletId ? `Ví ${tx.walletId}` : "-"}
+                                {tx.walletId ? `W-${tx.walletId}` : "-"}
                               </small>
                             </td>
                             <td>
@@ -283,9 +283,7 @@ const PendingWithdrawals = () => {
                             </td>
                             <td>{formatDateTime(tx.createdAt)}</td>
                             <td>
-                              <span className="badge badge-warning">
-                                Chờ duyệt
-                              </span>
+                              <span>Chờ duyệt</span>
                             </td>
                             <td className="text-center">
                               <button

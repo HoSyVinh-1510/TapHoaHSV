@@ -14,6 +14,8 @@ namespace BaseCore.DTO
         public string? CouponCode { get; set; }
         public int? AddressId { get; set; }
         public bool UseWallet { get; set; }
+        public string DeliveryMethod { get; set; } = "Delivery";
+        public DateTime? PickupTime { get; set; }
     }
 
     public class ValidateCouponDto

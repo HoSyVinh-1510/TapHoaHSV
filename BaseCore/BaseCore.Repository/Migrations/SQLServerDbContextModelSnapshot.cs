@@ -492,6 +492,14 @@ namespace BaseCore.Repository.Migrations
                         .HasColumnName("CreatedAt")
                         .HasDefaultValueSql("getdate()");
 
+                    b.Property<string>("DeliveryMethod")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Delivery")
+                        .HasColumnName("DeliveryMethod");
+
                     b.Property<decimal>("DiscountAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
@@ -523,19 +531,20 @@ namespace BaseCore.Repository.Migrations
                         .HasColumnName("PaymentStatus");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasColumnName("Phone");
 
+                    b.Property<DateTime?>("PickupTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PickupTime");
+
                     b.Property<string>("ReceiverName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("ReceiverName");
 
                     b.Property<string>("ShippingAddress")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("ShippingAddress");

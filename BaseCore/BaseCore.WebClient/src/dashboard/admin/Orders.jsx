@@ -139,7 +139,6 @@ const Orders = () => {
     loadOrders();
   }, [loadOrders]);
 
-
   const patchFilterDraft = useCallback((patch) => {
     setFilterDraft((current) => ({
       ...current,
@@ -218,25 +217,15 @@ const Orders = () => {
 
       setSelectedOrder(normalizeOrder(payload?.order ?? {}));
       setSelectedOrderDetails(
-        mapApiList(payload?.details).map(
-          normalizeOrderDetail,
-        ),
+        mapApiList(payload?.details).map(normalizeOrderDetail),
       );
       setSelectedOrderHistory(
-        mapApiList(payload?.statusHistory).map(
-          normalizeStatusHistory,
-        ),
+        mapApiList(payload?.statusHistory).map(normalizeStatusHistory),
       );
       setSelectedOrderActivityLogs(
-        mapApiList(payload?.activityLogs).map(
-          normalizeActivityLog,
-        ),
+        mapApiList(payload?.activityLogs).map(normalizeActivityLog),
       );
-      setSelectedOrderBill(
-        payload?.bill
-          ? normalizeBill(payload?.bill)
-          : null,
-      );
+      setSelectedOrderBill(payload?.bill ? normalizeBill(payload?.bill) : null);
       setShowDetailModal(true);
     } catch (detailError) {
       setError(
@@ -419,10 +408,10 @@ const Orders = () => {
                       <table className="table table-bordered table-hover mb-0">
                         <thead>
                           <tr>
-                            <th style={{ width: "80px" }}>ID</th>
-                            <th style={{ width: "200px" }}>Ngày tạo</th>
+                            <th style={{ width: "40px" }}>ID</th>
+                            <th style={{ width: "130px" }}>Ngày tạo</th>
                             <th style={{ width: "100px" }}>Khách hàng</th>
-                            <th style={{ width: "200px" }}>Người nhận</th>
+                            <th style={{ width: "160px" }}>Người nhận</th>
                             <th style={{ width: "150px" }}>Trạng thái đơn</th>
                             <th style={{ width: "170px" }}>Thanh toán</th>
                             <th style={{ width: "120px" }}>Phương thức</th>
@@ -463,14 +452,13 @@ const Orders = () => {
                               return (
                                 <tr key={order.id}>
                                   <td>
-                                    <strong>#{order.id}</strong>
+                                    <strong>{order.id}</strong>
                                   </td>
                                   <td>{formatDateTime(order.createdAt)}</td>
                                   <td>{order.userId || "-"}</td>
                                   <td>
                                     <div>
-                                      Tên người nhận:{" "}
-                                      {order.receiverName || "-"}
+                                      Tên: {order.receiverName || "-"}
                                       <br></br>
                                       <small className="text-muted">
                                         SĐT: {order.phone || "-"}
@@ -478,7 +466,7 @@ const Orders = () => {
                                     </div>
                                   </td>
                                   <td>
-                                    <div className="font-weight-bold mb-1">
+                                    <div className="font-weight-bold">
                                       {formatOrderStatus(order.orderStatus)}
                                     </div>
                                     <div className="d-flex flex-wrap">
@@ -506,7 +494,7 @@ const Orders = () => {
                                       ))}
                                     </div>
                                   </td>
-                                  
+
                                   <td>
                                     <div className="font-weight-bold mb-1">
                                       {formatPaymentStatus(order.paymentStatus)}
@@ -537,7 +525,20 @@ const Orders = () => {
                                       ))}
                                     </div>
                                   </td>
-                                  <td>{order.paymentMethod || "-"}</td>
+                                  <td>
+                                    {order.deliveryMethod === "Pickup" ? (
+                                      <p>
+                                        Nhận hàng: <b>Lấy tại quán</b>
+                                      </p>
+                                    ) : (
+                                      <p>
+                                        Nhận hàng:
+                                        <b>Giao tận nơi</b>
+                                      </p>
+                                    )}
+                                    Thanh toán:{" "}
+                                    <b>{order.paymentMethod || "-"}</b>
+                                  </td>
                                   <td className="text-right">
                                     {currencyFormatter.format(
                                       order.totalAmount,
@@ -574,8 +575,11 @@ const Orders = () => {
                   </div>
 
                   <div className="card-footer d-flex flex-wrap justify-content-between align-items-center">
-                    
-                    <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                    />
                   </div>
                 </div>
               </div>
@@ -761,4 +765,3 @@ const Orders = () => {
 };
 
 export default Orders;
-

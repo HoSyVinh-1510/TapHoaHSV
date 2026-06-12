@@ -156,8 +156,19 @@ namespace BaseCore.Services
                 or OrderStatusReturned;
         }
 
-        public static bool IsValidAdminOrderTransition(string previousStatus, string nextStatus)
+        public static bool IsValidAdminOrderTransition(string previousStatus, string nextStatus, string? deliveryMethod = "Delivery")
         {
+            if (string.Equals(deliveryMethod, "Pickup", StringComparison.OrdinalIgnoreCase))
+            {
+                return (previousStatus, nextStatus) switch
+                {
+                    (OrderStatusPending, OrderStatusConfirmed) => true,
+                    (OrderStatusConfirmed, OrderStatusReceived) => true,
+                    (OrderStatusConfirmed, OrderStatusCompleted) => true,
+                    _ => false
+                };
+            }
+
             return (previousStatus, nextStatus) switch
             {
                 (OrderStatusPending, OrderStatusConfirmed) => true,

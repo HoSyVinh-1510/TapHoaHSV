@@ -206,3 +206,4 @@ d:\FW-Test\FW-test\BaseCore\BaseCore.Repository\obj\Debug\net8.0\refint\BaseCore
 d:\FW-Test\FW-test\BaseCore\BaseCore.Repository\obj\Debug\net8.0\BaseCore.Repository.pdb
 d:\FW-Test\FW-test\BaseCore\BaseCore.Repository\obj\Debug\net8.0\BaseCore.Repository.genruntimeconfig.cache
 d:\FW-Test\FW-test\BaseCore\BaseCore.Repository\obj\Debug\net8.0\ref\BaseCore.Repository.dll
+D:\FW-Test\FW-test\BaseCore\BaseCore.Repository\obj\Debug\net8.0\BaseCore.Repository.sourcelink.json

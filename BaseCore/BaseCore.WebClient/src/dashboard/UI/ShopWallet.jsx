@@ -24,7 +24,7 @@ const ShopWallet = () => {
   const [transactions, setTransactions] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(7);
   const [loading, setLoading] = useState(true);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState("");
@@ -866,32 +866,17 @@ const ShopWallet = () => {
                                   </td>
                                   <td>{formatTxStatus(tx.status)}</td>
                                   <td>
-                                    {tx.type === "Deposit" &&
-                                    tx.status === "Pending" ? (
-                                      <button
-                                        type="button"
-                                        className="btn btn-xs btn-outline-info font-weight-bold"
-                                        onClick={() => {
-                                          setCurrentDepositTx(tx);
-                                          setIsViewingExisting(true);
-                                          setShowDepositModal(true);
-                                        }}
-                                      >
-                                        Xem QR
-                                      </button>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        className="btn btn-outline-info"
-                                        onClick={() => {
-                                          setCurrentDepositTx(tx);
-                                          setIsViewingExisting(true);
-                                          setShowDepositModal(true);
-                                        }}
-                                      >
-                                        Xem chi tiết
-                                      </button>
-                                    )}
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-info"
+                                      onClick={() => {
+                                        setCurrentDepositTx(tx);
+                                        setIsViewingExisting(true);
+                                        setShowDepositModal(true);
+                                      }}
+                                    >
+                                      Xem chi tiết
+                                    </button>
                                   </td>
                                 </tr>
                               );
@@ -995,13 +980,7 @@ const ShopWallet = () => {
 
               <div className="modal-footer">
                 {isViewingExisting ? (
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowDepositModal(false)}
-                  >
-                    Bạn đã chuyển rồi
-                  </button>
+                  <></>
                 ) : (
                   <button
                     type="button"

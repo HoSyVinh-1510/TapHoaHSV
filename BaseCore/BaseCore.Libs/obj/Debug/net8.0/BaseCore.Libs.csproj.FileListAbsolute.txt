@@ -168,3 +168,4 @@ d:\FW-Test\FW-test\BaseCore\BaseCore.Libs\obj\Debug\net8.0\BaseCore.Libs.dll
 d:\FW-Test\FW-test\BaseCore\BaseCore.Libs\obj\Debug\net8.0\refint\BaseCore.Libs.dll
 d:\FW-Test\FW-test\BaseCore\BaseCore.Libs\obj\Debug\net8.0\BaseCore.Libs.pdb
 d:\FW-Test\FW-test\BaseCore\BaseCore.Libs\obj\Debug\net8.0\ref\BaseCore.Libs.dll
+D:\FW-Test\FW-test\BaseCore\BaseCore.Libs\obj\Debug\net8.0\BaseCore.Libs.sourcelink.json

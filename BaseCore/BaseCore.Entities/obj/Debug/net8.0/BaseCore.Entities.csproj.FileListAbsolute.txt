@@ -150,3 +150,4 @@ d:\FW-Test\FW-test\BaseCore\BaseCore.Entities\obj\Debug\net8.0\BaseCore.Entities
 d:\FW-Test\FW-test\BaseCore\BaseCore.Entities\obj\Debug\net8.0\refint\BaseCore.Entities.dll
 d:\FW-Test\FW-test\BaseCore\BaseCore.Entities\obj\Debug\net8.0\BaseCore.Entities.pdb
 d:\FW-Test\FW-test\BaseCore\BaseCore.Entities\obj\Debug\net8.0\ref\BaseCore.Entities.dll
+D:\FW-Test\FW-test\BaseCore\BaseCore.Entities\obj\Debug\net8.0\BaseCore.Entities.sourcelink.json

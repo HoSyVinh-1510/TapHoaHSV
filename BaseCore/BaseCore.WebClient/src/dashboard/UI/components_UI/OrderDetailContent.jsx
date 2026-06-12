@@ -381,7 +381,25 @@ const OrderDetailContent = ({
       </div>
 
       <div className="col-lg-7">
-        <h6 className="mb-2">Thông tin giao hàng</h6>
+        <h6 className="mb-2">Phương thức nhận hàng</h6>
+        <div className="mb-3 p-3 border rounded bg-light">
+          <div className="d-flex align-items-center">
+            <strong className="mr-2">Hình thức:</strong>
+            {order.deliveryMethod === "Pickup" ? (
+              <span className="badge badge-primary px-2 py-1"><i className="fas fa-store mr-1"></i> Lấy tại quán</span>
+            ) : (
+              <span className="badge badge-info px-2 py-1"><i className="fas fa-motorcycle mr-1"></i> Giao tận nơi</span>
+            )}
+          </div>
+          {order.deliveryMethod === "Pickup" && order.pickupTime && (
+            <div className="mt-2 text-primary font-weight-bold">
+              <i className="fas fa-clock mr-1"></i>
+              Thời gian hẹn lấy: {new Date(order.pickupTime).toLocaleString("vi-VN", { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </div>
+          )}
+        </div>
+
+        <h6 className="mb-2">Thông tin người nhận</h6>
         <div className="mb-3">
           <div>
             <strong>Người nhận:</strong> {order.receiverName || "-"}

@@ -126,9 +126,11 @@ namespace BaseCore.Repository
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("OrderId");
                 entity.Property(e => e.UserId).HasColumnName("UserId").HasMaxLength(450).IsRequired();
-                entity.Property(e => e.ReceiverName).HasColumnName("ReceiverName").HasMaxLength(100).IsRequired();
-                entity.Property(e => e.Phone).HasColumnName("Phone").HasMaxLength(20).IsRequired();
-                entity.Property(e => e.ShippingAddress).HasColumnName("ShippingAddress").HasMaxLength(255).IsRequired();
+                entity.Property(e => e.ReceiverName).HasColumnName("ReceiverName").HasMaxLength(100).IsRequired(false);
+                entity.Property(e => e.Phone).HasColumnName("Phone").HasMaxLength(20).IsRequired(false);
+                entity.Property(e => e.ShippingAddress).HasColumnName("ShippingAddress").HasMaxLength(255).IsRequired(false);
+                entity.Property(e => e.DeliveryMethod).HasColumnName("DeliveryMethod").HasMaxLength(50).IsRequired().HasDefaultValue("Delivery");
+                entity.Property(e => e.PickupTime).HasColumnName("PickupTime").IsRequired(false);
                 entity.Property(e => e.Note).HasColumnName("Note").HasMaxLength(500).IsRequired(false);
                 entity.Property(e => e.TotalAmount).HasColumnName("TotalAmount").HasPrecision(18, 2);
                 entity.Property(e => e.DiscountAmount).HasColumnName("DiscountAmount").HasPrecision(18, 2).HasDefaultValue(0);

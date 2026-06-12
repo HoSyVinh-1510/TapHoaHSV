@@ -13,7 +13,7 @@ const PendingDeposits = () => {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -105,7 +105,7 @@ const PendingDeposits = () => {
         <div className="container-fluid">
           <div className="row mb-2">
             <div className="col-sm-6">
-              <h1 className="m-0">Quản lý nạp tiền</h1>
+              <h1>Quản lý nạp tiền</h1>
             </div>
             <div className="col-sm-6 text-right">
               <button
@@ -132,9 +132,7 @@ const PendingDeposits = () => {
               >
                 &times;
               </button>
-              <h5>
-                <i className="icon fas fa-check"></i> Thành công!
-              </h5>
+              <h5>Thành công!</h5>
               {success}
             </div>
           )}
@@ -148,9 +146,7 @@ const PendingDeposits = () => {
               >
                 &times;
               </button>
-              <h5>
-                <i className="icon fas fa-ban"></i> Lỗi!
-              </h5>
+              <h5>Lỗi!</h5>
               {error}
             </div>
           )}
@@ -161,18 +157,18 @@ const PendingDeposits = () => {
                 <b>Yêu cầu nạp tiền chờ duyệt</b>
               </h3>
               <div className="card-tools">
+                <label>Phân trang</label>
                 <select
-                  className="form-control form-control-sm text-dark"
+                  className="form-control"
                   value={pageSize}
                   onChange={(e) => {
                     setPage(1);
                     setPageSize(Number(e.target.value) || 20);
                   }}
-                  style={{ width: "120px" }}
                 >
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
+                  <option value={10}>10 / Trang</option>
+                  <option value={20}>20 / Trang</option>
+                  <option value={50}>50 / Trang</option>
                 </select>
               </div>
             </div>
@@ -195,8 +191,8 @@ const PendingDeposits = () => {
                       <th>Mô tả / Ghi chú</th>
                       <th>Thời gian tạo</th>
                       <th>Trạng thái</th>
-                      <th style={{ width: "220px" }} className="text-center">
-                        Hành động
+                      <th style={{ width: "300px" }} className="text-center">
+                        Thao tác
                       </th>
                     </tr>
                   </thead>
@@ -211,30 +207,20 @@ const PendingDeposits = () => {
                       deposits.map((tx) => (
                         <tr key={tx.transactionId}>
                           <td>{tx.transactionId}</td>
-                          <td>
-                            <strong className="text-primary">
-                              {tx.referenceId || "-"}
-                            </strong>
-                          </td>
+                          <td>{tx.referenceId || "-"}</td>
                           <td>
                             <small className="text-secondary">
-                              {tx.walletId || "-"}
+                              W-{tx.walletId || "-"}
                             </small>
                           </td>
-                          <td className="text-right font-weight-bold text-success">
-                            {currencyFormatter.format(tx.amount) || "0"}
-                          </td>
+                          <td>{currencyFormatter.format(tx.amount) || "0"}</td>
                           <td>{tx.description}</td>
                           <td>{formatDateTime(tx.createdAt)}</td>
-                          <td>
-                            <span className="badge badge-warning">
-                              "Đang chờ"
-                            </span>
-                          </td>
+                          <td>Chờ duyệt</td>
                           <td className="text-center">
                             <button
                               type="button"
-                              className="btn btn-sm btn-success mr-2"
+                              className="btn btn-success mr-2"
                               disabled={processingId === tx.transactionId}
                               onClick={() =>
                                 handleApprove(
@@ -248,7 +234,7 @@ const PendingDeposits = () => {
                             </button>
                             <button
                               type="button"
-                              className="btn btn-sm btn-danger"
+                              className="btn btn-danger"
                               disabled={processingId === tx.transactionId}
                               onClick={() =>
                                 handleReject(

@@ -106,3 +106,4 @@ d:\FW-Test\FW-test\BaseCore\BaseCore.Common\obj\Debug\net8.0\BaseCore.Common.dll
 d:\FW-Test\FW-test\BaseCore\BaseCore.Common\obj\Debug\net8.0\refint\BaseCore.Common.dll
 d:\FW-Test\FW-test\BaseCore\BaseCore.Common\obj\Debug\net8.0\BaseCore.Common.pdb
 d:\FW-Test\FW-test\BaseCore\BaseCore.Common\obj\Debug\net8.0\ref\BaseCore.Common.dll
+D:\FW-Test\FW-test\BaseCore\BaseCore.Common\obj\Debug\net8.0\BaseCore.Common.sourcelink.json

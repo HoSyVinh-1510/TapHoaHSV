@@ -159,7 +159,8 @@ const ShopOrderTransferConfirmations = () => {
           finalItems = finalItems.filter((o) => {
             const pStatus = normalizePaymentStatus(o.paymentStatus);
             return (
-              (isBankTransferMethod(o.paymentMethod) && pStatus === PAYMENT_STATUS.PENDING) ||
+              (isBankTransferMethod(o.paymentMethod) &&
+                pStatus === PAYMENT_STATUS.PENDING) ||
               pStatus === PAYMENT_STATUS.REFUND_PENDING
             );
           });
@@ -168,7 +169,11 @@ const ShopOrderTransferConfirmations = () => {
             const pStatus = normalizePaymentStatus(o.paymentStatus);
             return (
               isBankTransferMethod(o.paymentMethod) ||
-              [PAYMENT_STATUS.REFUND_PENDING, PAYMENT_STATUS.REFUND_TRANSFERRED, PAYMENT_STATUS.REFUNDED].includes(pStatus)
+              [
+                PAYMENT_STATUS.REFUND_PENDING,
+                PAYMENT_STATUS.REFUND_TRANSFERRED,
+                PAYMENT_STATUS.REFUNDED,
+              ].includes(pStatus)
             );
           });
         }
@@ -186,7 +191,11 @@ const ShopOrderTransferConfirmations = () => {
             const pStatus = normalizePaymentStatus(o.paymentStatus);
             return (
               isBankTransferMethod(o.paymentMethod) ||
-              [PAYMENT_STATUS.REFUND_PENDING, PAYMENT_STATUS.REFUND_TRANSFERRED, PAYMENT_STATUS.REFUNDED].includes(pStatus)
+              [
+                PAYMENT_STATUS.REFUND_PENDING,
+                PAYMENT_STATUS.REFUND_TRANSFERRED,
+                PAYMENT_STATUS.REFUNDED,
+              ].includes(pStatus)
             );
           });
         }
@@ -207,7 +216,10 @@ const ShopOrderTransferConfirmations = () => {
       }
 
       const startIndex = (activePage - 1) * pageSize;
-      const paginatedItems = finalItems.slice(startIndex, startIndex + pageSize);
+      const paginatedItems = finalItems.slice(
+        startIndex,
+        startIndex + pageSize,
+      );
 
       setOrders(paginatedItems);
     } catch {
@@ -249,9 +261,9 @@ const ShopOrderTransferConfirmations = () => {
         .then((response) => {
           const payload = response?.data ?? {};
 
-          const activityLogs = mapApiList(
-            payload?.activityLogs,
-          ).map(normalizeActivityLog);
+          const activityLogs = mapApiList(payload?.activityLogs).map(
+            normalizeActivityLog,
+          );
 
           const latestTransferSubmission =
             findLatestBankTransferSubmission(activityLogs);
@@ -296,12 +308,15 @@ const ShopOrderTransferConfirmations = () => {
   };
 
   const handleQuickConfirm = async (order) => {
-    if (!order?.id || normalizePaymentStatus(order.paymentStatus) !== PAYMENT_STATUS.PENDING) {
+    if (
+      !order?.id ||
+      normalizePaymentStatus(order.paymentStatus) !== PAYMENT_STATUS.PENDING
+    ) {
       return;
     }
 
     const accepted = window.confirm(
-      `Xác nhận đã nhận chuyển khoản cho đơn #${order.id} với số tiền ${currencyFormatter.format(order.totalAmount)}?`
+      `Xác nhận đã nhận chuyển khoản cho đơn #${order.id} với số tiền ${currencyFormatter.format(order.totalAmount)}?`,
     );
     if (!accepted) {
       return;
@@ -321,7 +336,7 @@ const ShopOrderTransferConfirmations = () => {
     } catch (confirmError) {
       setError(
         confirmError.response?.data?.message ||
-          "Không thể xác nhận thanh toán cho đơn hàng."
+          "Không thể xác nhận thanh toán cho đơn hàng.",
       );
       await loadOrders();
     } finally {
@@ -330,12 +345,16 @@ const ShopOrderTransferConfirmations = () => {
   };
 
   const handleConfirmRefundReceived = async (order) => {
-    if (!order?.id || normalizePaymentStatus(order.paymentStatus) !== PAYMENT_STATUS.REFUND_TRANSFERRED) {
+    if (
+      !order?.id ||
+      normalizePaymentStatus(order.paymentStatus) !==
+        PAYMENT_STATUS.REFUND_TRANSFERRED
+    ) {
       return;
     }
 
     const accepted = window.confirm(
-      `Xác nhận bạn đã nhận được tiền hoàn trả số tiền ${currencyFormatter.format(order.totalAmount)} cho đơn #${order.id}?`
+      `Xác nhận bạn đã nhận được tiền hoàn trả số tiền ${currencyFormatter.format(order.totalAmount)} cho đơn #${order.id}?`,
     );
     if (!accepted) {
       return;
@@ -355,7 +374,7 @@ const ShopOrderTransferConfirmations = () => {
     } catch (confirmError) {
       setError(
         confirmError.response?.data?.message ||
-          "Không thể xác nhận nhận tiền hoàn trả."
+          "Không thể xác nhận nhận tiền hoàn trả.",
       );
       await loadOrders();
     } finally {
@@ -367,14 +386,14 @@ const ShopOrderTransferConfirmations = () => {
     if (adminView) {
       const pStatus = normalizePaymentStatus(o.paymentStatus);
       return (
-        (isBankTransferMethod(o.paymentMethod) && pStatus === PAYMENT_STATUS.PENDING) ||
+        (isBankTransferMethod(o.paymentMethod) &&
+          pStatus === PAYMENT_STATUS.PENDING) ||
         pStatus === PAYMENT_STATUS.REFUND_PENDING
       );
     } else {
       const pStatus = normalizePaymentStatus(o.paymentStatus);
       return (
-        pStatus === PAYMENT_STATUS.REFUND_TRANSFERRED ||
-        canOpenBankTransfer(o)
+        pStatus === PAYMENT_STATUS.REFUND_TRANSFERRED || canOpenBankTransfer(o)
       );
     }
   }).length;
@@ -401,7 +420,8 @@ const ShopOrderTransferConfirmations = () => {
               {!adminView && <strong>chuyển khoản ngân hàng</strong>}
               {pendingCount > 0 && !showAll && (
                 <span className="badge badge-warning ml-2">
-                  {pendingCount} {adminView ? "đơn chờ duyệt" : "đơn chờ thanh toán/nhận tiền"}
+                  {pendingCount}{" "}
+                  {adminView ? "đơn chờ duyệt" : "đơn chờ thanh toán/nhận tiền"}
                 </span>
               )}
             </p>
@@ -461,17 +481,17 @@ const ShopOrderTransferConfirmations = () => {
                 <table className="table table-hover mb-0">
                   <thead className="thead-light">
                     <tr>
-                      <th style={{ width: "80px" }}>Mã đơn</th>
-                      <th style={{ width: "145px" }}>Ngày tạo</th>
-                      {adminView && <th style={{ width: "140px" }}>Khách hàng</th>}
+                      <th>Mã đơn</th>
+                      <th>Ngày tạo</th>
+                      <th>Khách hàng</th>
                       <th>Người nhận</th>
-                      <th style={{ width: "150px" }}>Trạng thái đơn</th>
-                      <th style={{ width: "150px" }}>Thanh toán</th>
-                      <th className="text-right" style={{ width: "130px" }}>
+                      <th style={{ width: "180px" }}>Trạng thái đơn</th>
+                      <th style={{ width: "250px" }}>Thanh toán</th>
+                      <th className="text-right" style={{ width: "150px" }}>
                         Tổng tiền
                       </th>
-                      <th style={{ width: "180px" }}>Thời gian thanh toán</th>
-                      <th className="text-center" style={{ width: "140px" }}>
+                      <th style={{ width: "200px" }}>Thời gian thanh toán</th>
+                      <th className="text-center" style={{ width: "200px" }}>
                         Thao tác
                       </th>
                     </tr>
@@ -506,50 +526,47 @@ const ShopOrderTransferConfirmations = () => {
                     {!loading &&
                       orders.map((order) => {
                         const canPay = canOpenBankTransfer(order);
-                        const transferSubmission = transferSubmissionMap[order.id];
-                        const loadingSubmission = loadingTransferSubmissionIds.has(order.id);
+                        const transferSubmission =
+                          transferSubmissionMap[order.id];
+                        const loadingSubmission =
+                          loadingTransferSubmissionIds.has(order.id);
 
                         return (
                           <tr key={order.id}>
                             <td>
-                              <strong>#{order.id}</strong>
+                              <strong>{order.id}</strong>
                             </td>
+                            <td>{formatDateTime(order.createdAt)}</td>
+                            <td>{order.userId || "-"}</td>
                             <td>
-                              <small>{formatDateTime(order.createdAt)}</small>
-                            </td>
-                            {adminView && <td>{order.userId || "-"}</td>}
-                            <td>
-                              <div>{order.receiverName || "-"}</div>
-                              <small className="text-muted">
-                                {order.phone || ""}
-                              </small>
+                              Tên: {order.receiverName || "-"}
+                              <br></br>
+                              SDT: {order.phone || ""}
                             </td>
                             <td>{formatOrderStatus(order.orderStatus)}</td>
+                            <td>{formatPaymentStatus(order.paymentStatus)}</td>
                             <td>
-                              <span
-                                className={`badge ${paymentBadgeClass(order.paymentStatus)}`}
-                              >
-                                {formatPaymentStatus(order.paymentStatus)}
-                              </span>
-                            </td>
-                            <td className="text-right font-weight-bold">
                               {currencyFormatter.format(order.totalAmount)}
                             </td>
                             <td>
                               {loadingSubmission ? (
-                                <small className="text-muted">Đang tải...</small>
-                              ) : transferSubmission?.submittedAt ? (
-                                <small className="font-weight-bold text-success">
-                                  {formatDateTime(transferSubmission.submittedAt)}
+                                <small className="text-muted">
+                                  Đang tải...
                                 </small>
+                              ) : transferSubmission?.submittedAt ? (
+                                formatDateTime(transferSubmission.submittedAt)
                               ) : (
-                                <small className="text-muted">Chưa báo chuyển</small>
+                                <small className="text-muted">
+                                  Chưa báo chuyển
+                                </small>
                               )}
                             </td>
                             <td className="text-center">
                               {adminView ? (
                                 <>
-                                  {normalizePaymentStatus(order.paymentStatus) === PAYMENT_STATUS.PENDING ? (
+                                  {normalizePaymentStatus(
+                                    order.paymentStatus,
+                                  ) === PAYMENT_STATUS.PENDING ? (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-success font-weight-bold mr-1"
@@ -558,26 +575,36 @@ const ShopOrderTransferConfirmations = () => {
                                     >
                                       Xác nhận thanh toán
                                     </button>
-                                  ) : normalizePaymentStatus(order.paymentStatus) === PAYMENT_STATUS.REFUND_PENDING ? (
+                                  ) : normalizePaymentStatus(
+                                      order.paymentStatus,
+                                    ) === PAYMENT_STATUS.REFUND_PENDING ? (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-warning font-weight-bold mr-1"
                                       onClick={() =>
-                                        navigate(`/shop/orders/refund/${order.id}`)
+                                        navigate(
+                                          `/shop/orders/refund/${order.id}`,
+                                        )
                                       }
                                     >
                                       Hoàn tiền
                                     </button>
-                                  ) : null}
+                                  ) : (
+                                    <></>
+                                  )}
                                 </>
                               ) : (
                                 <>
-                                  {normalizePaymentStatus(order.paymentStatus) === PAYMENT_STATUS.REFUND_TRANSFERRED ? (
+                                  {normalizePaymentStatus(
+                                    order.paymentStatus,
+                                  ) === PAYMENT_STATUS.REFUND_TRANSFERRED ? (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-success font-weight-bold mr-1"
                                       disabled={processingOrderId === order.id}
-                                      onClick={() => handleConfirmRefundReceived(order)}
+                                      onClick={() =>
+                                        handleConfirmRefundReceived(order)
+                                      }
                                     >
                                       Xác nhận nhận tiền
                                     </button>
@@ -586,7 +613,9 @@ const ShopOrderTransferConfirmations = () => {
                                       type="button"
                                       className="btn btn-sm btn-warning font-weight-bold mr-1"
                                       onClick={() =>
-                                        navigate(`/shop/bank-transfer/${order.id}`)
+                                        navigate(
+                                          `/shop/bank-transfer/${order.id}`,
+                                        )
                                       }
                                     >
                                       Thanh toán
@@ -603,7 +632,11 @@ const ShopOrderTransferConfirmations = () => {
               </div>
 
               <div className="d-flex flex-wrap justify-content-center align-items-end mt-3">
-                <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
               </div>
             </div>
           </div>
@@ -614,4 +647,3 @@ const ShopOrderTransferConfirmations = () => {
 };
 
 export default ShopOrderTransferConfirmations;
-

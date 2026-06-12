@@ -18,7 +18,6 @@ import {
   normalizeAddress,
   parseSelectedProductIds,
   toOrderItemsPayload,
-
 } from "../../utils/checkoutDataUtils";
 import ShopAddressModal from "./components_UI/ShopAddressModal";
 import ShopCouponModal from "./components_UI/ShopCouponModal";
@@ -28,9 +27,10 @@ const ShopCheckout = () => {
   const [, setTick] = useState(0);
 
   useEffect(() => {
-    const handleEvent = () => setTick(t => t + 1);
+    const handleEvent = () => setTick((t) => t + 1);
     window.addEventListener("shop-currency-changed", handleEvent);
-    return () => window.removeEventListener("shop-currency-changed", handleEvent);
+    return () =>
+      window.removeEventListener("shop-currency-changed", handleEvent);
   }, []);
 
   const navigate = useNavigate();
@@ -53,6 +53,8 @@ const ShopCheckout = () => {
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [deliveryMethod, setDeliveryMethod] = useState("Delivery");
+  const [pickupTime, setPickupTime] = useState("");
   const [loading, setLoading] = useState(true);
   const [couponLoading, setCouponLoading] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
@@ -70,11 +72,12 @@ const ShopCheckout = () => {
     setError("");
 
     try {
-      const [cartResult, addressResult, walletResult] = await Promise.allSettled([
-        cartApi.getAll(),
-        addressApi.getAll(),
-        walletApi.getWallet(),
-      ]);
+      const [cartResult, addressResult, walletResult] =
+        await Promise.allSettled([
+          cartApi.getAll(),
+          addressApi.getAll(),
+          walletApi.getWallet(),
+        ]);
 
       const normalizedCartItems =
         cartResult.status === "fulfilled"
@@ -266,13 +269,18 @@ const ShopCheckout = () => {
     }
 
     const useSavedAddress = !!selectedAddress;
-    if (
-      !useSavedAddress &&
-      (!receiverName.trim() || !phone.trim() || !shippingAddress.trim())
-    ) {
-      setError(
-        "Vui lòng nhập đầy đủ người nhận, số điện thoại và địa chỉ giao hàng.",
-      );
+    if (deliveryMethod === "Delivery") {
+      if (
+        !useSavedAddress &&
+        (!receiverName.trim() || !phone.trim() || !shippingAddress.trim())
+      ) {
+        setError(
+          "Vui lòng nhập đầy đủ người nhận, số điện thoại và địa chỉ giao hàng.",
+        );
+        return;
+      }
+    } else if (deliveryMethod === "Pickup" && !pickupTime) {
+      setError("Vui lòng chọn thời gian hẹn lấy hàng.");
       return;
     }
 
@@ -292,8 +300,16 @@ const ShopCheckout = () => {
       note: note.trim() || null,
       paymentMethod: normalizedPaymentMethod,
       couponCode: appliedCoupon?.couponCode || null,
-      addressId: useSavedAddress ? Number(selectedAddress.id) : null,
+      addressId:
+        useSavedAddress && deliveryMethod === "Delivery"
+          ? Number(selectedAddress.id)
+          : null,
       useWallet: useWallet,
+      deliveryMethod: deliveryMethod,
+      pickupTime:
+        deliveryMethod === "Pickup" && pickupTime
+          ? new Date(pickupTime).toISOString()
+          : null,
     };
 
     setPlacingOrder(true);
@@ -379,97 +395,147 @@ const ShopCheckout = () => {
           <div className="row px-xl-5">
             <div className="col-lg-8">
               <div className="bg-light p-30 mb-4">
-                <h5 className="section-title position-relative text-uppercase mb-3">
-                  <span className="bg-light pr-3">Thông tin nhận hàng</span>
-                </h5>
-
-                {loading && (
-                  <p className="text-muted mb-0">
-                    Đang tải dữ liệu checkout...
-                  </p>
-                )}
-
-                {!loading && addresses.length > 0 && (
-                  <div className="mb-4 d-flex justify-content-between align-items-center">
-                    <h4>Địa chỉ đã lưu</h4>
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={() => setShowAddressModal(true)}
+                <h5>Phương thức nhận hàng</h5>
+                <div className="d-flex mb-4">
+                  <div className="custom-control custom-radio mr-4">
+                    <input
+                      type="radio"
+                      className="custom-control-input"
+                      id="deliveryMethodDelivery"
+                      checked={deliveryMethod === "Delivery"}
+                      onChange={() => setDeliveryMethod("Delivery")}
+                    />
+                    <label
+                      className="custom-control-label"
+                      htmlFor="deliveryMethodDelivery"
                     >
-                      Chọn địa chỉ
-                    </button>
+                      Giao hàng tận nơi
+                    </label>
+                  </div>
+                  <div className="custom-control custom-radio">
+                    <input
+                      type="radio"
+                      className="custom-control-input"
+                      id="deliveryMethodPickup"
+                      checked={deliveryMethod === "Pickup"}
+                      onChange={() => setDeliveryMethod("Pickup")}
+                    />
+                    <label
+                      className="custom-control-label"
+                      htmlFor="deliveryMethodPickup"
+                    >
+                      Lấy tại quán
+                    </label>
+                  </div>
+                </div>
+
+                {deliveryMethod === "Pickup" && (
+                  <div className="form-group mb-4 p-3 border rounded bg-white">
+                    <label className="font-weight-bold">
+                      Chọn thời gian hẹn lấy hàng *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      value={pickupTime}
+                      onChange={(e) => setPickupTime(e.target.value)}
+                    />
                   </div>
                 )}
 
-                {!loading && addresses.length === 0 && (
-                  <div className="mb-4 text-right">
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={() => setShowAddressModal(true)}
-                    >
-                      + Thêm địa chỉ
-                    </button>
-                  </div>
-                )}
-
-                {selectedAddress ? (
-                  <div className="alert alert-info position-relative">
-                    <div>
-                      <strong>Người nhận:</strong>{" "}
-                      {selectedAddress.receiverName}
-                    </div>
-                    <div>
-                      <strong>SĐT:</strong> {selectedAddress.phone}
-                    </div>
-                    <div>
-                      <strong>Địa chỉ:</strong> {selectedAddress.fullAddress}
-                    </div>
-                    {addresses.length > 0 && (
-                      <button
-                        className="btn btn-sm btn-light mt-2"
-                        onClick={() => setSelectedAddressId("")}
-                      >
-                        Nhập địa chỉ mới (Không lưu)
-                      </button>
+                {deliveryMethod === "Delivery" && (
+                  <>
+                    <h5>Thông tin nhận hàng</h5>
+                    {loading && (
+                      <p className="text-muted mb-0">
+                        Đang tải dữ liệu checkout...
+                      </p>
                     )}
-                  </div>
-                ) : (
-                  <div className="form-row">
-                    <div className="col-md-6 form-group">
-                      <label>Người nhận</label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Nhập tên người nhận"
-                        value={receiverName}
-                        onChange={(event) =>
-                          setReceiverName(event.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="col-md-6 form-group">
-                      <label>Số điện thoại</label>
-                      <input
-                        className="form-control"
-                        type="text"
-                        placeholder="Nhập số điện thoại"
-                        value={phone}
-                        onChange={(event) => setPhone(event.target.value)}
-                      />
-                    </div>
-                    <div className="col-md-12 form-group">
-                      <label>Địa chỉ giao hàng</label>
-                      <textarea
-                        className="form-control"
-                        rows={3}
-                        placeholder="Ví dụ: 236 Hoàng Quốc Việt, Cổ Nhuế 1, Bắc Từ Liêm, Hà Nội"
-                        value={shippingAddress}
-                        onChange={(event) =>
-                          setShippingAddress(event.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
+
+                    {!loading && addresses.length > 0 && (
+                      <div className="mb-4 d-flex justify-content-between align-items-center">
+                        <h4>Địa chỉ đã lưu</h4>
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => setShowAddressModal(true)}
+                        >
+                          Chọn địa chỉ
+                        </button>
+                      </div>
+                    )}
+
+                    {!loading && addresses.length === 0 && (
+                      <div className="text-right">
+                        <button
+                          className="btn btn-outline-primary"
+                          onClick={() => setShowAddressModal(true)}
+                        >
+                          + Thêm địa chỉ
+                        </button>
+                      </div>
+                    )}
+
+                    {selectedAddress ? (
+                      <div className="alert alert-info position-relative">
+                        <div>
+                          <strong>Người nhận:</strong>{" "}
+                          {selectedAddress.receiverName}
+                        </div>
+                        <div>
+                          <strong>SĐT:</strong> {selectedAddress.phone}
+                        </div>
+                        <div>
+                          <strong>Địa chỉ:</strong>{" "}
+                          {selectedAddress.fullAddress}
+                        </div>
+                        {addresses.length > 0 && (
+                          <button
+                            className="btn btn-sm btn-light mt-2"
+                            onClick={() => setSelectedAddressId("")}
+                          >
+                            Nhập địa chỉ mới (Không lưu)
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="form-row">
+                        <div className="col-md-6 form-group">
+                          <label>Người nhận</label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Nhập tên người nhận"
+                            value={receiverName}
+                            onChange={(event) =>
+                              setReceiverName(event.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="col-md-6 form-group">
+                          <label>Số điện thoại</label>
+                          <input
+                            className="form-control"
+                            type="text"
+                            placeholder="Nhập số điện thoại"
+                            value={phone}
+                            onChange={(event) => setPhone(event.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-12 form-group">
+                          <label>Địa chỉ giao hàng</label>
+                          <textarea
+                            className="form-control"
+                            rows={3}
+                            placeholder="Ví dụ: 236 Hoàng Quốc Việt, Cổ Nhuế 1, Bắc Từ Liêm, Hà Nội"
+                            value={shippingAddress}
+                            onChange={(event) =>
+                              setShippingAddress(event.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="form-group mb-0">
@@ -496,8 +562,13 @@ const ShopCheckout = () => {
                       checked={!isBankTransferMethod(paymentMethod)}
                       onChange={() => setPaymentMethod("COD")}
                     />
-                    <label className="custom-control-label" htmlFor="payment-cod">
-                      COD - Thanh toán khi nhận hàng
+                    <label
+                      className="custom-control-label"
+                      htmlFor="payment-cod"
+                    >
+                      {deliveryMethod === "Pickup"
+                        ? "COD - Thanh toán tại quầy khi đến lấy"
+                        : "COD - Thanh toán khi nhận hàng"}
                     </label>
                   </div>
                   <div className="custom-control custom-radio">
@@ -530,7 +601,10 @@ const ShopCheckout = () => {
                   <i className="fas fa-check-circle fa-2x mr-3 text-success"></i>
                   <div>
                     <div>Thanh toán ví thành viên</div>
-                    <small className="text-muted font-weight-normal">Đơn hàng sẽ được tự động khấu trừ toàn bộ từ số dư ví thành viên của bạn.</small>
+                    <small className="text-muted font-weight-normal">
+                      Đơn hàng sẽ được tự động khấu trừ toàn bộ từ số dư ví
+                      thành viên của bạn.
+                    </small>
                   </div>
                 </div>
               )}
@@ -587,13 +661,36 @@ const ShopCheckout = () => {
                       className="custom-control-input"
                       id="use-wallet-balance"
                       checked={useWallet}
-                      disabled={wallet.status !== "Active" || wallet.balance <= 0}
+                      disabled={
+                        wallet.status !== "Active" || wallet.balance <= 0
+                      }
                       onChange={(e) => setUseWallet(e.target.checked)}
-                      style={{ cursor: wallet.balance > 0 && wallet.status === "Active" ? "pointer" : "default" }}
+                      style={{
+                        cursor:
+                          wallet.balance > 0 && wallet.status === "Active"
+                            ? "pointer"
+                            : "default",
+                      }}
                     />
-                    <label className="custom-control-label font-weight-bold text-dark mb-0 d-block" htmlFor="use-wallet-balance" style={{ cursor: wallet.balance > 0 && wallet.status === "Active" ? "pointer" : "default" }}>
-                      Dùng số dư ví HSV: <span className="text-primary">{formatPrice(wallet.balance)}</span>
-                      {wallet.status !== "Active" && <span className="text-danger small d-block">(Ví của bạn đang bị khoá)</span>}
+                    <label
+                      className="custom-control-label font-weight-bold text-dark mb-0 d-block"
+                      htmlFor="use-wallet-balance"
+                      style={{
+                        cursor:
+                          wallet.balance > 0 && wallet.status === "Active"
+                            ? "pointer"
+                            : "default",
+                      }}
+                    >
+                      Dùng số dư ví HSV:{" "}
+                      <span className="text-primary">
+                        {formatPrice(wallet.balance)}
+                      </span>
+                      {wallet.status !== "Active" && (
+                        <span className="text-danger small d-block">
+                          (Ví của bạn đang bị khoá)
+                        </span>
+                      )}
                     </label>
                   </div>
                 )}
@@ -629,16 +726,14 @@ const ShopCheckout = () => {
                               <div>
                                 <div>{item.product.name}</div>
                                 <small className="text-muted">
-                                   {formatPrice(item.unitPrice)} x{" "}
+                                  {formatPrice(item.unitPrice)} x{" "}
                                   {item.quantity}
                                 </small>
                               </div>
                             </div>
                           </td>
                           <td className="text-right align-middle">
-                             {formatPrice(
-                               item.unitPrice * item.quantity,
-                             )}
+                            {formatPrice(item.unitPrice * item.quantity)}
                           </td>
                         </tr>
                       ))}
@@ -649,21 +744,23 @@ const ShopCheckout = () => {
                 <hr />
                 <div className="d-flex justify-content-between">
                   <h6>Tạm tính</h6>
-                   <h6>{formatPrice(subtotalAmount)}</h6>
+                  <h6>{formatPrice(subtotalAmount)}</h6>
                 </div>
                 <div className="d-flex justify-content-between">
                   <h6>Giảm giá</h6>
-                   <h6>-{formatPrice(discountAmount)}</h6>
+                  <h6>-{formatPrice(discountAmount)}</h6>
                 </div>
                 {useWallet && walletDeduction > 0 && (
                   <div className="d-flex justify-content-between">
                     <h6>Khấu trừ từ ví</h6>
-                    <h6 className="text-success">-{formatPrice(walletDeduction)}</h6>
+                    <h6 className="text-success">
+                      -{formatPrice(walletDeduction)}
+                    </h6>
                   </div>
                 )}
                 <div className="d-flex justify-content-between mt-2 pt-2 border-top">
                   <h5>Còn lại cần trả</h5>
-                   <h5 className="text-danger">{formatPrice(payableAmount)}</h5>
+                  <h5 className="text-danger">{formatPrice(payableAmount)}</h5>
                 </div>
 
                 <button
@@ -713,4 +810,3 @@ const ShopCheckout = () => {
 };
 
 export default ShopCheckout;
-

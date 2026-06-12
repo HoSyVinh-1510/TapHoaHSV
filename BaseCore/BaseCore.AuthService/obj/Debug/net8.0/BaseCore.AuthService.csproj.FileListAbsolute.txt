@@ -1595,3 +1595,4 @@ D:\FW-Test\FW-test\BaseCore\BaseCore.AuthService\bin\Debug\net8.0\RBush.dll
 D:\FW-Test\FW-test\BaseCore\BaseCore.AuthService\bin\Debug\net8.0\SixLabors.Fonts.dll
 D:\FW-Test\FW-test\BaseCore\BaseCore.AuthService\bin\Debug\net8.0\System.IO.Packaging.dll
 D:\FW-Test\FW-test\BaseCore\BaseCore.AuthService\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+D:\FW-Test\FW-test\BaseCore\BaseCore.AuthService\obj\Debug\net8.0\BaseCore.AuthService.sourcelink.json

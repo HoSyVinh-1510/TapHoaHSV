@@ -30,7 +30,7 @@ namespace BaseCore.APIService.Controllers
         {
             return User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
         }
-public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
+        public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
         {
             var result = await _orderService.GetMyOrdersAsync(GetUserId(), GetRole(), query);
             if (!result.IsSuccess)
@@ -38,8 +38,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
                 return BadRequest(new { message = result.Message });
             }
             return result.Data == null ? Ok() : Ok(result.Data);
-        
-}
+        }
 
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
@@ -52,7 +51,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             }
             return result.Data == null ? Ok() : Ok(result.Data);
         
-}
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -64,7 +63,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             }
             return result.Data == null ? Ok() : Ok(result.Data);
         
-}
+        }
 
         [HttpGet("{id}/status-history")]
         public async Task<IActionResult> GetStatusHistory(int id)
@@ -76,7 +75,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             }
             return result.Data == null ? Ok() : Ok(result.Data);
         
-}
+        }
 
         [HttpPost("validate-coupon")]
         public async Task<IActionResult> ValidateCoupon([FromBody] ValidateCouponDto dto)
@@ -86,9 +85,8 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             {
                 return BadRequest(new { message = result.Message });
             }
-            return result.Data == null ? Ok() : Ok(result.Data);
-        
-}
+            return result.Data == null ? Ok() : Ok(result.Data);        
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
@@ -99,8 +97,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
                 return BadRequest(new { message = result.Message });
             }
             return result.Data == null ? Ok() : Ok(result.Data);
-        
-}
+        }
 
         [HttpPut("{id}/status")]
         [Authorize(Roles = "Admin")]
@@ -150,8 +147,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
                 return BadRequest(new { message = result.Message });
             }
             return result.Data == null ? Ok() : Ok(result.Data);
-        
-}
+        }
 
         [HttpPut("{id}/confirm-refund-received")]
         public async Task<IActionResult> ConfirmRefundReceived(int id)
@@ -162,8 +158,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
                 return BadRequest(new { message = result.Message });
             }
             return result.Data == null ? Ok() : Ok(result.Data);
-        
-}
+        }
 
         [HttpPut("{id}/receive")]
         public async Task<IActionResult> ReceiveOrder(int id)
@@ -210,11 +205,8 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             {
                 return BadRequest(new { message = result.Message });
             }
-            return result.Data == null ? Ok() : Ok(result.Data);
-        
-}
-
-
+            return result.Data == null ? Ok() : Ok(result.Data);     
+        }
 
         [HttpPut("{id}/return-request")]
         public async Task<IActionResult> RequestReturnOrRefund(int id, [FromBody] ReturnRequestDto dto)
@@ -226,7 +218,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             }
             return result.Data == null ? Ok() : Ok(result.Data);
         
-}
+        }
 
         [HttpPut("{id}/return-request/resolve")]
         [Authorize(Roles = "Admin")]
@@ -239,7 +231,7 @@ public async Task<IActionResult> GetMyOrders([FromQuery] OrderQueryDto query)
             }
             return result.Data == null ? Ok() : Ok(result.Data);
         
-}
+        }
     }
 }
 

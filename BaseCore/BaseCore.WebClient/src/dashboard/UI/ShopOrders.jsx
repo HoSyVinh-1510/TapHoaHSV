@@ -40,7 +40,6 @@ import {
   ORDER_STATUS,
 } from "../../utils/orderDataUtils";
 
-
 const ORDER_STATUS_FILTER_OPTIONS = [
   { value: "", label: "Tất cả trạng thái đơn" },
   ...ORDER_STATUS_OPTIONS,
@@ -100,7 +99,8 @@ const ShopOrders = () => {
   const [orderBillMap, setOrderBillMap] = useState({});
   const [orderReviewMap, setOrderReviewMap] = useState({});
   const [transferSubmissionMap, setTransferSubmissionMap] = useState({});
-  const [loadingTransferSubmissionIds, setLoadingTransferSubmissionIds] = useState(new Set());
+  const [loadingTransferSubmissionIds, setLoadingTransferSubmissionIds] =
+    useState(new Set());
   const [loadingDetailsId, setLoadingDetailsId] = useState(null);
 
   const [error, setError] = useState("");
@@ -164,7 +164,10 @@ const ShopOrders = () => {
       setOrders([]);
       setTotalCount(0);
       setTotalPages(1);
-      setError(loadError.response?.data?.message || "Không thể tải danh sách đơn hàng.");
+      setError(
+        loadError.response?.data?.message ||
+          "Không thể tải danh sách đơn hàng.",
+      );
     } finally {
       setLoading(false);
     }
@@ -191,14 +194,15 @@ const ShopOrders = () => {
 
     setTransferSubmissionMap((current) => ({
       ...current,
-      [submittedOrderId]:
-        current[submittedOrderId] || {
-          submittedAt: new Date().toISOString(),
-          note: "",
-          byUserId: user?.id || "",
-        },
+      [submittedOrderId]: current[submittedOrderId] || {
+        submittedAt: new Date().toISOString(),
+        note: "",
+        byUserId: user?.id || "",
+      },
     }));
-    setSuccess(`Đã gửi xác nhận chuyển khoản cho đơn #${submittedOrderId}. Vui lòng chờ admin duyệt.`);
+    setSuccess(
+      `Đã gửi xác nhận chuyển khoản cho đơn #${submittedOrderId}. Vui lòng chờ admin duyệt.`,
+    );
     navigate(location.pathname, { replace: true, state: null });
   }, [location.pathname, location.state, navigate, user?.id]);
 
@@ -208,7 +212,9 @@ const ShopOrders = () => {
         return;
       }
 
-      if (Object.prototype.hasOwnProperty.call(transferSubmissionMap, order.id)) {
+      if (
+        Object.prototype.hasOwnProperty.call(transferSubmissionMap, order.id)
+      ) {
         return;
       }
 
@@ -216,7 +222,9 @@ const ShopOrders = () => {
         return;
       }
 
-      setLoadingTransferSubmissionIds((current) => new Set(current).add(order.id));
+      setLoadingTransferSubmissionIds((current) =>
+        new Set(current).add(order.id),
+      );
 
       orderApi
         .getById(order.id)
@@ -225,15 +233,16 @@ const ShopOrders = () => {
           const activityLogs = mapApiList(payload?.activityLogs).map(
             normalizeActivityLog,
           );
-          const latestTransferSubmission = findLatestBankTransferSubmission(activityLogs);
+          const latestTransferSubmission =
+            findLatestBankTransferSubmission(activityLogs);
           setTransferSubmissionMap((current) => ({
             ...current,
             [order.id]: latestTransferSubmission
               ? {
-                submittedAt: latestTransferSubmission.createdAt,
-                note: latestTransferSubmission.description || "",
-                byUserId: latestTransferSubmission.actorUserId || "",
-              }
+                  submittedAt: latestTransferSubmission.createdAt,
+                  note: latestTransferSubmission.description || "",
+                  byUserId: latestTransferSubmission.actorUserId || "",
+                }
               : null,
           }));
         })
@@ -260,7 +269,7 @@ const ShopOrders = () => {
 
   const orderTotalOnPage = useMemo(
     () => orders.reduce((sum, order) => sum + order.totalAmount, 0),
-    [orders]
+    [orders],
   );
 
   const handleUpdateOrderStatus = async (order, nextStatus) => {
@@ -270,7 +279,7 @@ const ShopOrders = () => {
 
     const note = window.prompt(
       "Ghi chú thay đổi trạng thái (không bắt buộc):",
-      ""
+      "",
     );
     if (note === null) {
       return;
@@ -282,14 +291,14 @@ const ShopOrders = () => {
     try {
       await orderApi.updateStatus(order.id, nextStatus, note || null);
       setSuccess(
-        `Đã cập nhật trạng thái đơn #${order.id} thành "${formatOrderStatus(nextStatus)}".`
+        `Đã cập nhật trạng thái đơn #${order.id} thành "${formatOrderStatus(nextStatus)}".`,
       );
       window.dispatchEvent(new Event("notifications-updated"));
       await loadOrders();
     } catch (updateError) {
       setError(
         updateError.response?.data?.message ||
-          "Không thể cập nhật trạng thái đơn hàng."
+          "Không thể cập nhật trạng thái đơn hàng.",
       );
       await loadOrders();
     } finally {
@@ -313,14 +322,14 @@ const ShopOrders = () => {
     try {
       await orderApi.updatePaymentStatus(order.id, nextPaymentStatus);
       setSuccess(
-        `Đã cập nhật thanh toán đơn #${order.id} thành "${formatPaymentStatus(nextPaymentStatus)}".`
+        `Đã cập nhật thanh toán đơn #${order.id} thành "${formatPaymentStatus(nextPaymentStatus)}".`,
       );
       window.dispatchEvent(new Event("notifications-updated"));
       await loadOrders();
     } catch (updateError) {
       setError(
         updateError.response?.data?.message ||
-          "Không thể cập nhật trạng thái thanh toán."
+          "Không thể cập nhật trạng thái thanh toán.",
       );
       await loadOrders();
     } finally {
@@ -336,7 +345,9 @@ const ShopOrders = () => {
   const handleShopSearchSubmit = (event) => {
     event.preventDefault();
     const query = searchInput.trim();
-    navigate(query ? `/shop/list?q=${encodeURIComponent(query)}` : "/shop/list");
+    navigate(
+      query ? `/shop/list?q=${encodeURIComponent(query)}` : "/shop/list",
+    );
   };
 
   const openFilterModal = () => {
@@ -421,8 +432,12 @@ const ShopOrders = () => {
       const response = orderResult.value;
       const payload = response?.data ?? {};
       const details = mapApiList(payload?.details).map(normalizeOrderDetail);
-      const history = mapApiList(payload?.statusHistory).map(normalizeStatusHistory);
-      const activityLogs = mapApiList(payload?.activityLogs).map(normalizeActivityLog);
+      const history = mapApiList(payload?.statusHistory).map(
+        normalizeStatusHistory,
+      );
+      const activityLogs = mapApiList(payload?.activityLogs).map(
+        normalizeActivityLog,
+      );
       const billPayload = payload?.bill ?? null;
       const reviews =
         reviewResult.status === "fulfilled"
@@ -437,14 +452,22 @@ const ShopOrders = () => {
 
       setOrderDetailsMap((current) => ({ ...current, [orderId]: details }));
       setOrderHistoryMap((current) => ({ ...current, [orderId]: history }));
-      setOrderActivityMap((current) => ({ ...current, [orderId]: activityLogs }));
+      setOrderActivityMap((current) => ({
+        ...current,
+        [orderId]: activityLogs,
+      }));
       setOrderBillMap((current) => ({
         ...current,
         [orderId]: billPayload ? normalizeBill(billPayload) : null,
       }));
-      setOrderReviewMap((current) => ({ ...current, [orderId]: reviewByOrderItemId }));
+      setOrderReviewMap((current) => ({
+        ...current,
+        [orderId]: reviewByOrderItemId,
+      }));
     } catch (loadError) {
-      setError(loadError.response?.data?.message || "Không thể tải chi tiết đơn hàng.");
+      setError(
+        loadError.response?.data?.message || "Không thể tải chi tiết đơn hàng.",
+      );
     } finally {
       setLoadingDetailsId(null);
     }
@@ -468,7 +491,8 @@ const ShopOrders = () => {
         const activeQrs = (res.data || []).filter((qr) => qr.isActive);
         setRefundQrs(activeQrs);
         if (activeQrs.length > 0) {
-          const defaultQr = activeQrs.find((qr) => qr.isDefault) || activeQrs[0];
+          const defaultQr =
+            activeQrs.find((qr) => qr.isDefault) || activeQrs[0];
           setRefundQrId(defaultQr.id.toString());
         }
       } catch (err) {
@@ -494,14 +518,16 @@ const ShopOrders = () => {
       await loadOrders();
       setExpandedOrderId(null);
     } catch (cancelError) {
-      setError(cancelError.response?.data?.message || "Không thể huỷ đơn hàng.");
+      setError(
+        cancelError.response?.data?.message || "Không thể huỷ đơn hàng.",
+      );
       await loadOrders();
     }
   };
 
   const handleConfirmCancelWithRefund = async () => {
     if (!cancelOrderTarget) return;
-    
+
     if (refundMethod === "QR" && !refundQrId) {
       alert("Vui lòng chọn một mã QR để nhận tiền hoàn.");
       return;
@@ -513,21 +539,27 @@ const ShopOrders = () => {
 
     const payload = {
       refundMethod: refundMethod,
-      refundQrId: refundMethod === "QR" ? Number(refundQrId) : null
+      refundQrId: refundMethod === "QR" ? Number(refundQrId) : null,
     };
 
     try {
       await orderApi.cancel(cancelOrderTarget.id, payload);
       if (refundMethod === "Wallet") {
-        setSuccess(`Đã huỷ đơn hàng #${cancelOrderTarget.id}. Tiền đã được tự động hoàn vào Số dư Ví của bạn.`);
+        setSuccess(
+          `Đã huỷ đơn hàng #${cancelOrderTarget.id}. Tiền đã được tự động hoàn vào Số dư Ví của bạn.`,
+        );
       } else {
-        setSuccess(`Đã huỷ đơn hàng #${cancelOrderTarget.id}. Vui lòng chờ Admin hoàn tiền qua mã QR.`);
+        setSuccess(
+          `Đã huỷ đơn hàng #${cancelOrderTarget.id}. Vui lòng chờ Admin hoàn tiền qua mã QR.`,
+        );
       }
       window.dispatchEvent(new Event("notifications-updated"));
       await loadOrders();
       setExpandedOrderId(null);
     } catch (cancelError) {
-      setError(cancelError.response?.data?.message || "Không thể huỷ đơn hàng.");
+      setError(
+        cancelError.response?.data?.message || "Không thể huỷ đơn hàng.",
+      );
       await loadOrders();
     }
   };
@@ -551,7 +583,9 @@ const ShopOrders = () => {
       await loadOrders();
       setExpandedOrderId(null);
     } catch (receiveError) {
-      setError(receiveError.response?.data?.message || "Không thể xác nhận nhận hàng.");
+      setError(
+        receiveError.response?.data?.message || "Không thể xác nhận nhận hàng.",
+      );
       await loadOrders();
     }
   };
@@ -561,7 +595,9 @@ const ShopOrders = () => {
       return;
     }
 
-    if (!window.confirm(`Ban xac nhan da nhan tien hoan cho don #${order.id}?`)) {
+    if (
+      !window.confirm(`Ban xac nhan da nhan tien hoan cho don #${order.id}?`)
+    ) {
       return;
     }
 
@@ -575,7 +611,10 @@ const ShopOrders = () => {
       await loadOrders();
       setExpandedOrderId(null);
     } catch (refundError) {
-      setError(refundError.response?.data?.message || "Không thể xác nhận đã nhận tiền hoàn.");
+      setError(
+        refundError.response?.data?.message ||
+          "Không thể xác nhận đã nhận tiền hoàn.",
+      );
       await loadOrders();
     }
   };
@@ -597,23 +636,42 @@ const ShopOrders = () => {
     setSuccess("");
     try {
       await orderApi.returnRequest(returnOrderId, returnReason.trim());
-      setSuccess(`Đã gửi yêu cầu hoàn/trả cho đơn #${returnOrderId}. Admin sẽ xét duyệt sớm.`);
+      setSuccess(
+        `Đã gửi yêu cầu hoàn/trả cho đơn #${returnOrderId}. Admin sẽ xét duyệt sớm.`,
+      );
       setShowReturnModal(false);
       setReturnRequestedIds((prev) => new Set(prev).add(returnOrderId));
       window.dispatchEvent(new Event("notifications-updated"));
       await loadOrders();
       // Refresh detail if expanded
       if (expandedOrderId === returnOrderId) {
-        setOrderDetailsMap(m => { const n = { ...m }; delete n[returnOrderId]; return n; });
-        setOrderHistoryMap(m => { const n = { ...m }; delete n[returnOrderId]; return n; });
-        setOrderActivityMap(m => { const n = { ...m }; delete n[returnOrderId]; return n; });
+        setOrderDetailsMap((m) => {
+          const n = { ...m };
+          delete n[returnOrderId];
+          return n;
+        });
+        setOrderHistoryMap((m) => {
+          const n = { ...m };
+          delete n[returnOrderId];
+          return n;
+        });
+        setOrderActivityMap((m) => {
+          const n = { ...m };
+          delete n[returnOrderId];
+          return n;
+        });
         await handleToggleOrderDetail(returnOrderId);
       }
     } catch (returnError) {
-      const errorMsg = returnError.response?.data?.message || "Không thể gửi yêu cầu hoàn/trả.";
+      const errorMsg =
+        returnError.response?.data?.message ||
+        "Không thể gửi yêu cầu hoàn/trả.";
       setError(errorMsg);
       await loadOrders();
-      if (returnError.response?.status === 400 && errorMsg.includes("already has an open return")) {
+      if (
+        returnError.response?.status === 400 &&
+        errorMsg.includes("already has an open return")
+      ) {
         setReturnRequestedIds((prev) => new Set(prev).add(returnOrderId));
         setShowReturnModal(false);
       }
@@ -667,11 +725,11 @@ const ShopOrders = () => {
           [reviewTarget.orderItemId]: review.orderItemId
             ? review
             : {
-              ...review,
-              orderId: reviewTarget.orderId,
-              orderItemId: reviewTarget.orderItemId,
-              productId: reviewTarget.productId,
-            },
+                ...review,
+                orderId: reviewTarget.orderId,
+                orderItemId: reviewTarget.orderItemId,
+                productId: reviewTarget.productId,
+              },
         },
       }));
       setSuccess(`Đã gửi đánh giá cho "${reviewTarget.productName}".`);
@@ -680,7 +738,9 @@ const ShopOrders = () => {
       setReviewComment("");
       setReviewRating(5);
     } catch (reviewError) {
-      setError(reviewError.response?.data?.message || "Không thể gửi đánh giá.");
+      setError(
+        reviewError.response?.data?.message || "Không thể gửi đánh giá.",
+      );
     } finally {
       setSubmittingReview(false);
     }
@@ -701,7 +761,9 @@ const ShopOrders = () => {
         <div className="container-fluid pb-4">
           <div className="row px-xl-5">
             <div className="col-12 mb-3 d-flex flex-wrap justify-content-between align-items-center">
-              <h4>{adminView ? "Đơn hàng toàn hệ thống" : "Đơn hàng của tôi"}</h4>
+              <h4>
+                {adminView ? "Đơn hàng toàn hệ thống" : "Đơn hàng của tôi"}
+              </h4>
             </div>
           </div>
 
@@ -747,15 +809,17 @@ const ShopOrders = () => {
                   <table className="table table-hover mb-0">
                     <thead>
                       <tr>
-                        <th style={adminView ? { width: "80px" } : undefined}>Mã đơn</th>
-                        <th style={adminView ? { width: "180px" } : undefined}>Ngày tạo</th>
+                        <th>Mã đơn</th>
+                        <th>Ngày tạo</th>
                         {adminView && <th>Khách hàng</th>}
-                        <th style={adminView ? { width: "200px" } : undefined}>Người nhận</th>
-                        <th style={adminView ? { width: "180px" } : undefined}>Trạng thái đơn</th>
-                        <th style={adminView ? { width: "180px" } : undefined}>{adminView ? "Thanh toán" : "Trạng thái thanh toán"}</th>
-                        {adminView && <th style={{ width: "120px" }}>Phương thức</th>}
-                        <th className="text-right" style={adminView ? { width: "100px" } : undefined}>Tổng tiền</th>
-                        <th className="text-center" style={adminView ? { width: "150px" } : undefined}>Thao tác</th>
+                        <th>Người nhận</th>
+                        <th style={adminView ? { width: "180px" } : undefined}>
+                          Trạng thái đơn
+                        </th>
+                        <th>Trạng thái thanh toán</th>
+                        <th>Phương thức</th>
+                        <th className="text-right">Tổng tiền</th>
+                        <th className="text-center">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -783,12 +847,16 @@ const ShopOrders = () => {
 
                       {!loading &&
                         orders.map((order) => {
-                          const orderStatusActions = adminView ? getAdminOrderStatusActions(order) : [];
-                          const paymentStatusActions = adminView ? getAdminPaymentStatusActions(order) : [];
-                          const canOpenRefundFlow = adminView && (
-                            canAdminSubmitRefundTransfer(order) ||
-                            order.orderStatus === "ReturnRequested"
-                          );
+                          const orderStatusActions = adminView
+                            ? getAdminOrderStatusActions(order)
+                            : [];
+                          const paymentStatusActions = adminView
+                            ? getAdminPaymentStatusActions(order)
+                            : [];
+                          const canOpenRefundFlow =
+                            adminView &&
+                            (canAdminSubmitRefundTransfer(order) ||
+                              order.orderStatus === "ReturnRequested");
                           return (
                             <React.Fragment key={order.id}>
                               <tr>
@@ -800,9 +868,12 @@ const ShopOrders = () => {
                                 <td>
                                   {adminView ? (
                                     <div>
-                                      Tên người nhận: {order.receiverName || "-"}
+                                      Tên người nhận:{" "}
+                                      {order.receiverName || "-"}
                                       <br />
-                                      <small className="text-muted">SĐT: {order.phone || "-"}</small>
+                                      <small className="text-muted">
+                                        SĐT: {order.phone || "-"}
+                                      </small>
                                     </div>
                                   ) : (
                                     order.receiverName || "-"
@@ -824,8 +895,15 @@ const ShopOrders = () => {
                                                 ? "btn-outline-danger"
                                                 : "btn-outline-primary"
                                             }`}
-                                            onClick={() => handleUpdateOrderStatus(order, option.value)}
-                                            disabled={updatingStatusId === order.id}
+                                            onClick={() =>
+                                              handleUpdateOrderStatus(
+                                                order,
+                                                option.value,
+                                              )
+                                            }
+                                            disabled={
+                                              updatingStatusId === order.id
+                                            }
                                           >
                                             {option.label}
                                           </button>
@@ -840,7 +918,9 @@ const ShopOrders = () => {
                                   {adminView ? (
                                     <>
                                       <div className="font-weight-bold mb-1">
-                                        {formatPaymentStatus(order.paymentStatus)}
+                                        {formatPaymentStatus(
+                                          order.paymentStatus,
+                                        )}
                                       </div>
                                       <div className="d-flex flex-wrap">
                                         {paymentStatusActions.map((option) => (
@@ -848,12 +928,20 @@ const ShopOrders = () => {
                                             key={option.value}
                                             type="button"
                                             className={`btn btn-sm mr-1 mb-1 ${
-                                              option.value === "Refunded" || option.value === "Failed"
+                                              option.value === "Refunded" ||
+                                              option.value === "Failed"
                                                 ? "btn-outline-warning"
                                                 : "btn-outline-success"
                                             }`}
-                                            onClick={() => handleUpdatePaymentStatus(order, option.value)}
-                                            disabled={updatingPaymentId === order.id}
+                                            onClick={() =>
+                                              handleUpdatePaymentStatus(
+                                                order,
+                                                option.value,
+                                              )
+                                            }
+                                            disabled={
+                                              updatingPaymentId === order.id
+                                            }
                                           >
                                             {option.label}
                                           </button>
@@ -864,7 +952,24 @@ const ShopOrders = () => {
                                     formatPaymentStatus(order.paymentStatus)
                                   )}
                                 </td>
-                                {adminView && <td>{order.paymentMethod || "-"}</td>}
+                                {adminView && (
+                                  <td>
+                                    {order.deliveryMethod === "Pickup" ? (
+                                      <div className="">
+                                        Phương thức nhận hàng:{" "}
+                                        <b>Lấy tại quán</b>
+                                      </div>
+                                    ) : (
+                                      <div className="">
+                                        Phương thức nhận hàng:{" "}
+                                        <b>Giao tận nơi</b>
+                                      </div>
+                                    )}
+                                    <br />
+                                    Phương thức thanh toán:{" "}
+                                    <b>{order.paymentMethod || "-"}</b>
+                                  </td>
+                                )}
                                 <td className="text-right">
                                   {currencyFormatter.format(order.totalAmount)}
                                 </td>
@@ -873,16 +978,24 @@ const ShopOrders = () => {
                                   <button
                                     type="button"
                                     className="btn btn-sm btn-outline-primary mr-1"
-                                    onClick={() => handleToggleOrderDetail(order.id)}
+                                    onClick={() =>
+                                      handleToggleOrderDetail(order.id)
+                                    }
                                   >
-                                    {expandedOrderId === order.id ? "Ẩn" : "Chi tiết"}
+                                    {expandedOrderId === order.id
+                                      ? "Ẩn"
+                                      : "Chi tiết"}
                                   </button>
 
                                   {adminView && canOpenRefundFlow && (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-warning mr-1"
-                                      onClick={() => navigate(`/shop/orders/refund/${order.id}`)}
+                                      onClick={() =>
+                                        navigate(
+                                          `/shop/orders/refund/${order.id}`,
+                                        )
+                                      }
                                     >
                                       Hoàn tiền
                                     </button>
@@ -895,7 +1008,11 @@ const ShopOrders = () => {
                                           <button
                                             type="button"
                                             className="btn btn-sm btn-warning mr-1"
-                                            onClick={() => navigate(`/shop/bank-transfer/${order.id}`)}
+                                            onClick={() =>
+                                              navigate(
+                                                `/shop/bank-transfer/${order.id}`,
+                                              )
+                                            }
                                           >
                                             Chuyển khoản ngay
                                           </button>
@@ -910,11 +1027,15 @@ const ShopOrders = () => {
                                           </button>
                                         ))}
 
-                                      {canCancelOrderStatus(order.orderStatus) && (
+                                      {canCancelOrderStatus(
+                                        order.orderStatus,
+                                      ) && (
                                         <button
                                           type="button"
                                           className="btn btn-sm btn-outline-danger mr-1"
-                                          onClick={() => handleCancelOrder(order)}
+                                          onClick={() =>
+                                            handleCancelOrder(order)
+                                          }
                                         >
                                           Huỷ đơn
                                         </button>
@@ -924,7 +1045,9 @@ const ShopOrders = () => {
                                         <button
                                           type="button"
                                           className="btn btn-sm btn-success mr-1"
-                                          onClick={() => handleConfirmRefundReceived(order)}
+                                          onClick={() =>
+                                            handleConfirmRefundReceived(order)
+                                          }
                                         >
                                           Xác nhận hoàn tiền
                                         </button>
@@ -942,31 +1065,54 @@ const ShopOrders = () => {
 
                                       {canRequestReturn(order) &&
                                         !returnRequestedIds.has(order.id) &&
-                                        !hasOpenReturnRequest(orderHistoryMap[order.id] || [], orderActivityMap[order.id] || []) && (
+                                        !hasOpenReturnRequest(
+                                          orderHistoryMap[order.id] || [],
+                                          orderActivityMap[order.id] || [],
+                                        ) && (
                                           <button
                                             type="button"
                                             className="btn btn-sm btn-outline-warning mr-1"
-                                            onClick={() => handleOpenReturnModal(order.id)}
+                                            onClick={() =>
+                                              handleOpenReturnModal(order.id)
+                                            }
                                             title={
-                                              returnRequestedIds.has(order.id) ||
-                                                (orderHistoryMap[order.id] && hasOpenReturnRequest(orderHistoryMap[order.id], orderActivityMap[order.id] || []))
+                                              returnRequestedIds.has(
+                                                order.id,
+                                              ) ||
+                                              (orderHistoryMap[order.id] &&
+                                                hasOpenReturnRequest(
+                                                  orderHistoryMap[order.id],
+                                                  orderActivityMap[order.id] ||
+                                                    [],
+                                                ))
                                                 ? "Đang chờ admin phản hồi"
                                                 : "Yêu cầu hoàn hàng hoặc hoàn tiền"
                                             }
                                             disabled={
-                                              returnRequestedIds.has(order.id) ||
-                                              (orderHistoryMap[order.id] && hasOpenReturnRequest(orderHistoryMap[order.id], orderActivityMap[order.id] || []))
+                                              returnRequestedIds.has(
+                                                order.id,
+                                              ) ||
+                                              (orderHistoryMap[order.id] &&
+                                                hasOpenReturnRequest(
+                                                  orderHistoryMap[order.id],
+                                                  orderActivityMap[order.id] ||
+                                                    [],
+                                                ))
                                             }
                                           >
                                             Hoàn/Trả
                                           </button>
                                         )}
 
-                                      {canReceiveOrderStatus(order.orderStatus) && (
+                                      {canReceiveOrderStatus(
+                                        order.orderStatus,
+                                      ) && (
                                         <button
                                           type="button"
                                           className="btn btn-sm btn-success ml-1"
-                                          onClick={() => handleReceiveOrder(order)}
+                                          onClick={() =>
+                                            handleReceiveOrder(order)
+                                          }
                                         >
                                           Đã nhận hàng
                                         </button>
@@ -974,25 +1120,38 @@ const ShopOrders = () => {
                                     </>
                                   )}
                                 </td>
-
                               </tr>
 
                               {expandedOrderId === order.id && (
                                 <tr>
                                   <td colSpan={adminView ? "9" : "7"}>
                                     {loadingDetailsId === order.id && (
-                                      <div className="text-muted py-2">Đang tải chi tiết đơn hàng...</div>
+                                      <div className="text-muted py-2">
+                                        Đang tải chi tiết đơn hàng...
+                                      </div>
                                     )}
 
                                     {loadingDetailsId !== order.id && (
                                       <OrderDetailContent
                                         order={order}
-                                        details={orderDetailsMap[order.id] || []}
-                                        history={orderHistoryMap[order.id] || []}
-                                        activityLogs={orderActivityMap[order.id] || []}
+                                        details={
+                                          orderDetailsMap[order.id] || []
+                                        }
+                                        history={
+                                          orderHistoryMap[order.id] || []
+                                        }
+                                        activityLogs={
+                                          orderActivityMap[order.id] || []
+                                        }
                                         bill={orderBillMap[order.id] || null}
-                                        reviewByOrderItemId={orderReviewMap[order.id] || {}}
-                                        onOpenReview={adminView ? undefined : handleOpenReviewModal}
+                                        reviewByOrderItemId={
+                                          orderReviewMap[order.id] || {}
+                                        }
+                                        onOpenReview={
+                                          adminView
+                                            ? undefined
+                                            : handleOpenReviewModal
+                                        }
                                       />
                                     )}
                                   </td>
@@ -1006,7 +1165,11 @@ const ShopOrders = () => {
                 </div>
 
                 <div className="d-flex flex-wrap justify-content-center align-items-end mt-3">
-                  <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                  <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                  />
                 </div>
               </div>
             </div>
@@ -1030,7 +1193,10 @@ const ShopOrders = () => {
               placeholder="Tìm theo mã đơn, tên người nhận..."
               value={filterDraft.keywordInput}
               onChange={(event) =>
-                setFilterDraft((current) => ({ ...current, keywordInput: event.target.value }))
+                setFilterDraft((current) => ({
+                  ...current,
+                  keywordInput: event.target.value,
+                }))
               }
             />
           </div>
@@ -1041,11 +1207,17 @@ const ShopOrders = () => {
               className="form-control"
               value={filterDraft.orderStatus}
               onChange={(event) =>
-                setFilterDraft((current) => ({ ...current, orderStatus: event.target.value }))
+                setFilterDraft((current) => ({
+                  ...current,
+                  orderStatus: event.target.value,
+                }))
               }
             >
               {ORDER_STATUS_FILTER_OPTIONS.map((option) => (
-                <option key={option.value || "all-order-status"} value={option.value}>
+                <option
+                  key={option.value || "all-order-status"}
+                  value={option.value}
+                >
                   {option.label}
                 </option>
               ))}
@@ -1058,11 +1230,17 @@ const ShopOrders = () => {
               className="form-control"
               value={filterDraft.paymentStatus}
               onChange={(event) =>
-                setFilterDraft((current) => ({ ...current, paymentStatus: event.target.value }))
+                setFilterDraft((current) => ({
+                  ...current,
+                  paymentStatus: event.target.value,
+                }))
               }
             >
               {PAYMENT_STATUS_FILTER_OPTIONS.map((option) => (
-                <option key={option.value || "all-payment-status"} value={option.value}>
+                <option
+                  key={option.value || "all-payment-status"}
+                  value={option.value}
+                >
                   {option.label}
                 </option>
               ))}
@@ -1076,7 +1254,10 @@ const ShopOrders = () => {
               className="form-control"
               value={filterDraft.fromDate}
               onChange={(event) =>
-                setFilterDraft((current) => ({ ...current, fromDate: event.target.value }))
+                setFilterDraft((current) => ({
+                  ...current,
+                  fromDate: event.target.value,
+                }))
               }
             />
           </div>
@@ -1088,7 +1269,10 @@ const ShopOrders = () => {
               className="form-control"
               value={filterDraft.toDate}
               onChange={(event) =>
-                setFilterDraft((current) => ({ ...current, toDate: event.target.value }))
+                setFilterDraft((current) => ({
+                  ...current,
+                  toDate: event.target.value,
+                }))
               }
             />
           </div>
@@ -1112,7 +1296,6 @@ const ShopOrders = () => {
           </div>
         </div>
       </FilterCriteriaModal>
-
 
       <ModalFrame
         show={showReturnModal}
@@ -1143,8 +1326,8 @@ const ShopOrders = () => {
         }
       >
         <p className="text-muted mb-3">
-          Đơn hàng <strong>#{returnOrderId}</strong>  Vui lòng mô tả lý do yêu cầu hoàn/trả đề admin
-          xem xét và phản hồi sớm nhất.
+          Đơn hàng <strong>#{returnOrderId}</strong> Vui lòng mô tả lý do yêu
+          cầu hoàn/trả đề admin xem xét và phản hồi sớm nhất.
         </p>
         <div className="form-group">
           <label htmlFor="returnReasonInput">
@@ -1161,8 +1344,8 @@ const ShopOrders = () => {
           />
         </div>
         <small className="text-muted">
-          Sau khi gửi, admin sẽ xét duyệt yêu cầu. Bạn có thể theo dõi kết quả trong lịch sử trạng thái
-          đơn hàng.
+          Sau khi gửi, admin sẽ xét duyệt yêu cầu. Bạn có thể theo dõi kết quả
+          trong lịch sử trạng thái đơn hàng.
         </small>
       </ModalFrame>
 
@@ -1195,8 +1378,8 @@ const ShopOrders = () => {
         }
       >
         <p className="text-muted mb-3">
-          Bạn đang đánh giá <strong>{reviewTarget?.productName}</strong>. M�i sản phẩm trong đơn chỉ được
-          đánh giá một lần.
+          Bạn đang đánh giá <strong>{reviewTarget?.productName}</strong>. M�i
+          sản phẩm trong đơn chỉ được đánh giá một lần.
         </p>
 
         <div className="form-group">
@@ -1212,8 +1395,11 @@ const ShopOrders = () => {
                 aria-label={`${ratingValue} sao`}
               >
                 <i
-                  className={`fa-star ${ratingValue <= reviewRating ? "fas text-primary" : "far text-muted"
-                    }`}
+                  className={`fa-star ${
+                    ratingValue <= reviewRating
+                      ? "fas text-primary"
+                      : "far text-muted"
+                  }`}
                   style={{ fontSize: "24px" }}
                 ></i>
               </button>
@@ -1234,7 +1420,9 @@ const ShopOrders = () => {
             disabled={submittingReview}
             maxLength={1000}
           />
-          <small className="text-muted">{reviewComment.length}/1000 ký tự</small>
+          <small className="text-muted">
+            {reviewComment.length}/1000 ký tự
+          </small>
         </div>
       </ModalFrame>
 
@@ -1264,11 +1452,16 @@ const ShopOrders = () => {
         }
       >
         <p className="text-muted mb-3">
-          Bạn đang huỷ đơn hàng <strong>#{cancelOrderTarget?.id}</strong>. Đơn hàng này đã được thanh toán và bạn sẽ được hoàn lại <strong>{formatPrice(cancelOrderTarget?.totalAmount || 0)}</strong>. Vui lòng chọn phương thức nhận tiền:
+          Bạn đang huỷ đơn hàng <strong>#{cancelOrderTarget?.id}</strong>. Đơn
+          hàng này đã được thanh toán và bạn sẽ được hoàn lại{" "}
+          <strong>{formatPrice(cancelOrderTarget?.totalAmount || 0)}</strong>.
+          Vui lòng chọn phương thức nhận tiền:
         </p>
 
         <div className="form-group mb-3">
-          <label className="d-block mb-2 font-weight-bold">Phương thức hoàn tiền</label>
+          <label className="d-block mb-2 font-weight-bold">
+            Phương thức hoàn tiền
+          </label>
           <div className="custom-control custom-radio mb-2">
             <input
               type="radio"
@@ -1281,7 +1474,10 @@ const ShopOrders = () => {
             />
             <label className="custom-control-label" htmlFor="refundWallet">
               <strong>Hoàn tiền vào số dư Ví</strong>
-              <small className="d-block text-muted">Tiền sẽ được cộng ngay lập tức vào Ví điện tử của bạn trên hệ thống.</small>
+              <small className="d-block text-muted">
+                Tiền sẽ được cộng ngay lập tức vào Ví điện tử của bạn trên hệ
+                thống.
+              </small>
             </label>
           </div>
           <div className="custom-control custom-radio">
@@ -1296,14 +1492,19 @@ const ShopOrders = () => {
             />
             <label className="custom-control-label" htmlFor="refundQR">
               <strong>Hoàn tiền qua mã QR / Chuyển khoản</strong>
-              <small className="d-block text-muted">Hệ thống sẽ chuyển yêu cầu này sang danh sách chờ để Admin chuyển tiền lại cho bạn qua Ngân hàng.</small>
+              <small className="d-block text-muted">
+                Hệ thống sẽ chuyển yêu cầu này sang danh sách chờ để Admin
+                chuyển tiền lại cho bạn qua Ngân hàng.
+              </small>
             </label>
           </div>
         </div>
 
         {refundMethod === "QR" && (
           <div className="form-group mt-3 p-3 bg-light rounded">
-            <label className="font-weight-bold">Chọn tài khoản/QR nhận tiền</label>
+            <label className="font-weight-bold">
+              Chọn tài khoản/QR nhận tiền
+            </label>
             {refundQrs.length > 0 ? (
               <select
                 className="form-control"
@@ -1312,13 +1513,16 @@ const ShopOrders = () => {
               >
                 {refundQrs.map((qr) => (
                   <option key={qr.id} value={qr.id}>
-                    {qr.bankName} - {qr.accountNumber} ({qr.accountName}) {qr.isDefault ? " [Mặc định]" : ""}
+                    {qr.bankName} - {qr.accountNumber} ({qr.accountName}){" "}
+                    {qr.isDefault ? " [Mặc định]" : ""}
                   </option>
                 ))}
               </select>
             ) : (
               <div className="alert alert-warning mb-0 p-2">
-                Bạn chưa lưu mã QR/Tài khoản ngân hàng nào. Vui lòng vào trang <strong>Ví của tôi</strong> để thêm thông tin tài khoản trước khi chọn phương thức này.
+                Bạn chưa lưu mã QR/Tài khoản ngân hàng nào. Vui lòng vào trang{" "}
+                <strong>Ví của tôi</strong> để thêm thông tin tài khoản trước
+                khi chọn phương thức này.
               </div>
             )}
           </div>
@@ -1329,4 +1533,3 @@ const ShopOrders = () => {
 };
 
 export default ShopOrders;
-

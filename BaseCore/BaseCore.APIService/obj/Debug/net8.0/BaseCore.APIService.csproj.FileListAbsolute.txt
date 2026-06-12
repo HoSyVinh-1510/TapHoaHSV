@@ -1560,4 +1560,5 @@ D:\FW-Test\FW-test\BaseCore\BaseCore.APIService\bin\Debug\net8.0\ExcelNumberForm
 D:\FW-Test\FW-test\BaseCore\BaseCore.APIService\bin\Debug\net8.0\RBush.dll
 D:\FW-Test\FW-test\BaseCore\BaseCore.APIService\bin\Debug\net8.0\SixLabors.Fonts.dll
 D:\FW-Test\FW-test\BaseCore\BaseCore.APIService\bin\Debug\net8.0\System.IO.Packaging.dll
+D:\FW-Test\FW-test\BaseCore\BaseCore.APIService\obj\Debug\net8.0\BaseCore.APIService.sourcelink.json
 D:\FW-Test\FW-test\BaseCore\BaseCore.APIService\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

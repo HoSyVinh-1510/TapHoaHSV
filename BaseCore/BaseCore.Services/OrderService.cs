@@ -109,121 +109,117 @@ namespace BaseCore.Services
 
         
         public async Task<ServiceResult> GetMyOrdersAsync(string userId, string role, OrderQueryDto query)
-{
+        {
             
             if (string.IsNullOrEmpty(userId))
             {
                 return ServiceResult.Error("Unauthorized");
             }
             return await GetOrdersInternal(userId, query);
-        
-}
+            
+        }
 
-public async Task<ServiceResult> GetAllOrdersAsync(OrderQueryDto query)
-{
-            return await GetOrdersInternal(null, query);
-        
-}
+        public async Task<ServiceResult> GetAllOrdersAsync(OrderQueryDto query)
+        {
+           return await GetOrdersInternal(null, query);
+        }
 
-public async Task<ServiceResult> GetByIdAsync(string userId, string role, int id)
-{
-            var order = await _orderRepository.GetWithDetailsAsync(id);
-            if (order == null)
-            {
-                return ServiceResult.Error("Order not found");
-            }
+        public async Task<ServiceResult> GetByIdAsync(string userId, string role, int id)
+        {
+                    var order = await _orderRepository.GetWithDetailsAsync(id);
+                    if (order == null)
+                    {
+                        return ServiceResult.Error("Order not found");
+                    }
 
             
-            if (string.IsNullOrEmpty(userId))
-            {
-                return ServiceResult.Error("Unauthorized");
-            }
+                    if (string.IsNullOrEmpty(userId))
+                    {
+                        return ServiceResult.Error("Unauthorized");
+                    }
 
-            var isAdmin = role == "Admin";
-            if (!isAdmin && !string.Equals(order.UserId, userId, StringComparison.OrdinalIgnoreCase))
-            {
-                return ServiceResult.Error("Forbidden");
-            }
+                    var isAdmin = role == "Admin";
+                    if (!isAdmin && !string.Equals(order.UserId, userId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return ServiceResult.Error("Forbidden");
+                    }
 
-            var details = order.OrderItems ?? new List<OrderItem>();
-            var statusHistory = await TryGetStatusHistoryAsync(id);
-            if (statusHistory.Count == 0)
-            {
-                statusHistory = BuildFallbackStatusHistory(order);
-            }
-            var activityLogs = await TryGetActivityLogsAsync(id);
-            var bill = await _billRepository.GetByOrderWithDetailsAsync(id);
-            return ServiceResult.Success(new { order, details, statusHistory, activityLogs, bill });
+                    var details = order.OrderItems ?? new List<OrderItem>();
+                    var statusHistory = await TryGetStatusHistoryAsync(id);
+                    if (statusHistory.Count == 0)
+                    {
+                        statusHistory = BuildFallbackStatusHistory(order);
+                    }
+                    var activityLogs = await TryGetActivityLogsAsync(id);
+                    var bill = await _billRepository.GetByOrderWithDetailsAsync(id);
+                    return ServiceResult.Success(new { order, details, statusHistory, activityLogs, bill });
+        }
+
+        public async Task<ServiceResult> GetStatusHistoryAsync(string userId, string role, int id)
+        {
+                    var order = await _orderRepository.GetByIdAsync(id);
+                    if (order == null)
+                    {
+                        return ServiceResult.Error("Order not found");
+                    }
+
+                    if (string.IsNullOrEmpty(userId))
+                    {
+                        return ServiceResult.Error("Unauthorized");
+                    }
+
+                    var isAdmin = role == "Admin";
+                    if (!isAdmin && !string.Equals(order.UserId, userId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return ServiceResult.Error("Forbidden");
+                    }
+
+                    var history = await TryGetStatusHistoryAsync(id);
+                    if (history.Count == 0)
+                    {
+                        history = BuildFallbackStatusHistory(order);
+                    }
+                    return ServiceResult.Success(history);
         
-}
+        }
 
-public async Task<ServiceResult> GetStatusHistoryAsync(string userId, string role, int id)
-{
-            var order = await _orderRepository.GetByIdAsync(id);
-            if (order == null)
-            {
-                return ServiceResult.Error("Order not found");
-            }
+        public async Task<ServiceResult> ValidateCouponAsync(ValidateCouponDto dto)
+        {
+                    if (dto.Items == null || dto.Items.Count == 0)
+                    {
+                        return ServiceResult.Error("Cart is empty.");
+                    }
 
-            
-            if (string.IsNullOrEmpty(userId))
-            {
-                return ServiceResult.Error("Unauthorized");
-            }
+                    if (string.IsNullOrWhiteSpace(dto.CouponCode))
+                    {
+                        return ServiceResult.Error("Coupon code is required.");
+                    }
 
-            var isAdmin = role == "Admin";
-            if (!isAdmin && !string.Equals(order.UserId, userId, StringComparison.OrdinalIgnoreCase))
-            {
-                return ServiceResult.Error("Forbidden");
-            }
+                    var (isValidItems, itemValidationMessage, subtotalAmount, _) = await BuildOrderItemsAsync(dto.Items);
+                    if (!isValidItems)
+                    {
+                        return ServiceResult.Error(itemValidationMessage);
+                    }
 
-            var history = await TryGetStatusHistoryAsync(id);
-            if (history.Count == 0)
-            {
-                history = BuildFallbackStatusHistory(order);
-            }
-            return ServiceResult.Success(history);
-        
-}
+                    var validation = await _couponService.ValidateAsync(dto.CouponCode, subtotalAmount);
+                    if (!validation.IsValid || validation.Coupon == null)
+                    {
+                        return ServiceResult.Error(validation.Message);
+                    }
 
-public async Task<ServiceResult> ValidateCouponAsync(ValidateCouponDto dto)
-{
-            if (dto.Items == null || dto.Items.Count == 0)
-            {
-                return ServiceResult.Error("Cart is empty.");
-            }
+                    var finalAmount = Math.Max(0, subtotalAmount - validation.DiscountAmount);
+                    return ServiceResult.Success(new
+                    {
+                        couponCode = validation.Coupon.Code,
+                        couponName = validation.Coupon.Name,
+                        discountAmount = validation.DiscountAmount,
+                        subtotalAmount,
+                        finalAmount,
+                        message = validation.Message
+                    });
+        }
 
-            if (string.IsNullOrWhiteSpace(dto.CouponCode))
-            {
-                return ServiceResult.Error("Coupon code is required.");
-            }
-
-            var (isValidItems, itemValidationMessage, subtotalAmount, _) = await BuildOrderItemsAsync(dto.Items);
-            if (!isValidItems)
-            {
-                return ServiceResult.Error(itemValidationMessage);
-            }
-
-            var validation = await _couponService.ValidateAsync(dto.CouponCode, subtotalAmount);
-            if (!validation.IsValid || validation.Coupon == null)
-            {
-                return ServiceResult.Error(validation.Message);
-            }
-
-            var finalAmount = Math.Max(0, subtotalAmount - validation.DiscountAmount);
-            return ServiceResult.Success(new
-            {
-                couponCode = validation.Coupon.Code,
-                couponName = validation.Coupon.Name,
-                discountAmount = validation.DiscountAmount,
-                subtotalAmount,
-                finalAmount,
-                message = validation.Message
-            });
-        
-}
-
-public async Task<ServiceResult> CreateAsync(string userId, string role, CreateOrderDto dto)
+        public async Task<ServiceResult> CreateAsync(string userId, string role, CreateOrderDto dto)
         {
             var (isValidItems, itemValidationMessage, subtotalAmount, orderDetails) = await BuildOrderItemsAsync(dto.Items);
             if (!isValidItems) return ServiceResult.Error(itemValidationMessage);
@@ -259,11 +255,21 @@ public async Task<ServiceResult> CreateAsync(string userId, string role, CreateO
             var receiverName = selectedAddress?.ReceiverName ?? dto.ReceiverName ?? "";
             var phone = selectedAddress?.Phone ?? dto.Phone ?? "";
             var shippingAddress = selectedAddress?.FullAddress ?? dto.ShippingAddress ?? "";
-            if (string.IsNullOrWhiteSpace(receiverName) ||
-                string.IsNullOrWhiteSpace(phone) ||
-                string.IsNullOrWhiteSpace(shippingAddress))
+            
+            if (dto.DeliveryMethod == "Pickup")
             {
-                return ServiceResult.Error("Receiver name, phone and shipping address are required.");
+                shippingAddress = string.IsNullOrWhiteSpace(shippingAddress) ? "Lấy tại quán" : shippingAddress;
+                receiverName = string.IsNullOrWhiteSpace(receiverName) ? "Khách hàng" : receiverName;
+                phone = string.IsNullOrWhiteSpace(phone) ? "" : phone;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(receiverName) ||
+                    string.IsNullOrWhiteSpace(phone) ||
+                    string.IsNullOrWhiteSpace(shippingAddress))
+                {
+                    return ServiceResult.Error("Receiver name, phone and shipping address are required.");
+                }
             }
 
             if (!OrderFlowRules.TryNormalizePaymentMethod(dto.PaymentMethod, out var paymentMethod))
@@ -351,6 +357,8 @@ public async Task<ServiceResult> CreateAsync(string userId, string role, CreateO
                 CouponCode = appliedCoupon?.Code ?? dto.CouponCode,
                 DiscountAmount = discountAmount,
                                 TotalAmount = finalAmount,
+                DeliveryMethod = dto.DeliveryMethod ?? "Delivery",
+                PickupTime = dto.PickupTime,
                 CreatedAt = DateTime.Now
             };
 
@@ -472,9 +480,9 @@ public async Task<ServiceResult> UpdateStatusAsync(string userId, string role, i
                 return ServiceResult.Success(order);
             }
 
-            if (!OrderFlowRules.IsValidAdminOrderTransition(previousStatus, nextStatus))
+            if (!OrderFlowRules.IsValidAdminOrderTransition(previousStatus, nextStatus, order.DeliveryMethod))
             {
-                return ServiceResult.Error("Valid flow: WaitingPayment -> Confirmed after payment, or COD Pending -> Confirmed -> Shipping -> Received -> Completed.");
+                return ServiceResult.Error("Trình tự hợp lệ cho Giao hàng: Chờ xác nhận -> Đang chuẩn bị -> Đang giao. Cho Lấy tại quán: Chờ xác nhận -> Đang chuẩn bị -> Khách đã nhận.");
             }
 
             if (nextStatus == OrderFlowRules.OrderStatusConfirmed &&
@@ -533,24 +541,12 @@ public async Task<ServiceResult> UpdateStatusAsync(string userId, string role, i
                 nextStatus,
                 actorUserId,
                 "User");
-
-            // Gửi thông báo cho User về việc thay đổi trạng thái đơn hàng (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: order.UserId,
-                title: "Cập nhật đơn hàng",
-                message: $"Đơn hàng #{order.Id} của bạn đã chuyển sang trạng thái: {OrderFlowRules.ToVietnameseOrderStatus(nextStatus)}.",
-                url: "/shop/orders",
-                isAdmin: false
-            );
-            */
-
             return ServiceResult.Success(order);
         
-}
+            }
 
-public async Task<ServiceResult> UpdatePaymentStatusAsync(string userId, string role, int id, UpdatePaymentStatusDto dto)
-{
+        public async Task<ServiceResult> UpdatePaymentStatusAsync(string userId, string role, int id, UpdatePaymentStatusDto dto)
+        {
             if (string.IsNullOrWhiteSpace(dto.PaymentStatus))
             {
                 return ServiceResult.Error("Payment status is required");
@@ -673,22 +669,10 @@ public async Task<ServiceResult> UpdatePaymentStatusAsync(string userId, string 
                 previousPaymentStatus,
                 nextPaymentStatus,
                 userId,
-                "Admin");
-
-            // Gửi thông báo cho User về việc thay đổi trạng thái thanh toán (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: order.UserId,
-                title: "Thanh toán đơn hàng",
-                message: $"Thanh toán đơn hàng #{order.Id} đã cập nhật: {OrderFlowRules.ToVietnamesePaymentStatus(nextPaymentStatus)}.",
-                url: "/shop/orders",
-                isAdmin: false
-            );
-            */
-
+                "Admin"); 
             return ServiceResult.Success(order);
         
-}
+        }
 
 public async Task<ServiceResult> SubmitBankTransferAsync(string userId, string role, int id, SubmitBankTransferDto dto)
 {
@@ -697,8 +681,7 @@ public async Task<ServiceResult> SubmitBankTransferAsync(string userId, string r
             {
                 return ServiceResult.Error("Order not found");
             }
-
-            
+          
             if (string.IsNullOrEmpty(userId))
             {
                 return ServiceResult.Error("Unauthorized");
@@ -770,26 +753,13 @@ public async Task<ServiceResult> SubmitBankTransferAsync(string userId, string r
                 order.PaymentStatus,
                 userId,
                 "User");
-
             await transaction.CommitAsync();
-
-            // Gửi thông báo cho Admin khi user gửi xác nhận chuyển khoản (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: null,
-                title: "Xác nhận chuyển khoản",
-                message: $"Khách hàng vừa gửi xác nhận chuyển khoản cho đơn hàng #{order.Id}.",
-                url: $"/shop/orders",
-                isAdmin: true
-            );
-            */
 
             return ServiceResult.Success(new
             {
                 message = "Transfer confirmation submitted successfully.",
                 submittedAt = DateTime.Now
             });
-        
 }
 
 public async Task<ServiceResult> SubmitRefundTransferAsync(string userId, string role, int id, SubmitRefundTransferDto dto)
@@ -883,17 +853,6 @@ public async Task<ServiceResult> SubmitRefundTransferAsync(string userId, string
 
             await transaction.CommitAsync();
 
-            // Gửi thông báo cho User khi Admin hoàn tiền (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: order.UserId,
-                title: "Hoàn tiền đơn hàng",
-                message: $"Admin đã chuyển khoản hoàn tiền cho đơn hàng #{order.Id}. Vui lòng kiểm tra tài khoản và xác nhận.",
-                url: "/shop/orders",
-                isAdmin: false
-            );
-            */
-
             return ServiceResult.Success(new
             {
                 message = "Refund transfer submitted. Waiting for user confirmation.",
@@ -910,7 +869,6 @@ public async Task<ServiceResult> ConfirmRefundReceivedAsync(string userId, strin
                 return ServiceResult.Error("Order not found");
             }
 
-            
             if (string.IsNullOrEmpty(userId))
             {
                 return ServiceResult.Error("Unauthorized");
@@ -960,17 +918,6 @@ public async Task<ServiceResult> ConfirmRefundReceivedAsync(string userId, strin
 
             await transaction.CommitAsync();
 
-            // Gửi thông báo cho Admin khi user xác nhận đã nhận được tiền hoàn (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: null,
-                title: "User đã nhận hoàn tiền",
-                message: $"Khách hàng đã xác nhận nhận được tiền hoàn cho đơn hàng #{order.Id}.",
-                url: $"/shop/orders",
-                isAdmin: true
-            );
-            */
-
             return ServiceResult.Success(new
             {
                 message = "Refund receipt confirmed.",
@@ -986,7 +933,6 @@ public async Task<ServiceResult> ReceiveOrderAsync(string userId, string role, i
             {
                 return ServiceResult.Error("Order not found");
             }
-
             
             if (string.IsNullOrEmpty(userId))
             {
@@ -1062,19 +1008,7 @@ public async Task<ServiceResult> ReceiveOrderAsync(string userId, string role, i
 
             await transaction.CommitAsync();
 
-            // Gửi thông báo cho Admin khi user nhận được hàng (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: null,
-                title: "Đơn hàng đã giao",
-                message: $"Khách hàng đã xác nhận đã nhận đơn hàng #{order.Id}.",
-                url: $"/shop/orders",
-                isAdmin: true
-            );
-            */
-
-            return ServiceResult.Success(new { message = "Order received successfully", order });
-        
+            return ServiceResult.Success(new { message = "Order received successfully", order });     
 }
 
 public async Task<ServiceResult> CancelOrderAsync(string userId, string role, int id, CancelOrderRequestDto? dto = null)
@@ -1084,7 +1018,6 @@ public async Task<ServiceResult> CancelOrderAsync(string userId, string role, in
             {
                 return ServiceResult.Error("Order not found");
             }
-
             
             if (string.IsNullOrEmpty(userId))
             {
@@ -1178,17 +1111,15 @@ public async Task<ServiceResult> GetOpenReturnRequestsAsync(
                 pageSize,
                 totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
             });
-        
 }
 
-public async Task<ServiceResult> RequestReturnOrRefundAsync(string userId, string role, int id, ReturnRequestDto dto)
-{
+        public async Task<ServiceResult> RequestReturnOrRefundAsync(string userId, string role, int id, ReturnRequestDto dto)
+        {
             var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
             {
                 return ServiceResult.Error("Order not found");
             }
-
             
             if (string.IsNullOrEmpty(userId))
             {
@@ -1268,18 +1199,7 @@ public async Task<ServiceResult> RequestReturnOrRefundAsync(string userId, strin
                 userId,
                 "User");
 
-            await transaction.CommitAsync();
-
-            // Gửi thông báo cho Admin khi user yêu cầu hoàn/trả (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: null,
-                title: "Yêu cầu hoàn/trả hàng",
-                message: $"Đơn hàng #{order.Id} vừa gửi yêu cầu hoàn/trả: \"{reason}\".",
-                url: $"/shop/orders",
-                isAdmin: true
-            );
-            */
+            await transaction.CommitAsync();           
 
             return ServiceResult.Success(new
             {
@@ -1287,7 +1207,7 @@ public async Task<ServiceResult> RequestReturnOrRefundAsync(string userId, strin
                 orderId = order.Id
             });
         
-}
+        }
 
 public async Task<ServiceResult> ResolveReturnOrRefundRequestAsync(string userId, string role, int id, ResolveReturnRequestDto dto)
 {
@@ -1339,18 +1259,6 @@ public async Task<ServiceResult> ResolveReturnOrRefundRequestAsync(string userId
                     "Admin");
 
                 await rejectTransaction.CommitAsync();
-
-                // Gửi thông báo cho User khi Admin từ chối yêu cầu (Đã tự động gửi qua AddActivityLogAsync)
-                /*
-                await _notificationService.CreateAsync(
-                    userId: order.UserId,
-                    title: "Từ chối yêu cầu hoàn/trả",
-                    message: $"Admin đã từ chối yêu cầu hoàn/trả hàng của đơn hàng #{order.Id}. Lý do: \"{resolveNote}\".",
-                    url: "/shop/orders",
-                    isAdmin: false
-                );
-                */
-
                 return ServiceResult.Success(new { message = "Đã từ chối yêu cầu hoàn/trả." });
             }
 
@@ -1365,27 +1273,14 @@ public async Task<ServiceResult> ResolveReturnOrRefundRequestAsync(string userId
 
             await transaction.CommitAsync();
 
-            // Gửi thông báo cho User khi Admin duyệt yêu cầu (Đã tự động gửi qua AddActivityLogAsync)
-            /*
-            await _notificationService.CreateAsync(
-                userId: order.UserId,
-                title: "Phê duyệt hoàn/trả hàng",
-                message: $"Admin đã đồng ý yêu cầu hoàn/trả hàng của đơn hàng #{order.Id} và chuyển trạng thái sang Đã hoàn/trả.",
-                url: "/shop/orders",
-                isAdmin: false
-            );
-            */
-
             return ServiceResult.Success(new
             {
                 message = "Đã duyệt yêu cầu hoàn/trả và chuyển đơn sang trạng thái Returned.",
                 order
-            });
-        
+            });  
 }
 
-        private async Task<(bool IsValid, string Message, decimal SubtotalAmount, List<OrderItem> Details)>
-            BuildOrderItemsAsync(List<OrderItemDto> items)
+        private async Task<(bool IsValid, string Message, decimal SubtotalAmount, List<OrderItem> Details)> BuildOrderItemsAsync(List<OrderItemDto> items)
         {
             if (items == null || items.Count == 0)
             {
