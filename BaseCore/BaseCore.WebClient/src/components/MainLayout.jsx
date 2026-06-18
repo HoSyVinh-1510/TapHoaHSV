@@ -315,11 +315,11 @@ const MainLayout = ({ children }) => {
                     <i className="nav-icon fas fa-ticket-alt"></i>
                     <p>
                       Mã giảm giá
-                      {
+                      {couponCount > 0 && (
                         <span className="right badge badge-info ml-2">
                           {couponCount}
                         </span>
-                      }
+                      )}
                     </p>
                   </Link>
                 </li>
