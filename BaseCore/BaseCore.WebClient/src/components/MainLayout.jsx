@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { orderApi, walletApi } from "../services/api";
+import { couponApi, orderApi, userApi, walletApi } from "../services/api";
 import { PAYMENT_METHOD, PAYMENT_STATUS } from "../utils/orderDataUtils";
 const MainLayout = ({ children }) => {
   const location = useLocation();
@@ -13,6 +13,7 @@ const MainLayout = ({ children }) => {
   const [openReturnCount, setOpenReturnCount] = useState(0);
   const [pendingDepositCount, setPendingDepositCount] = useState(0);
   const [pendingWithdrawalCount, setPendingWithdrawalCount] = useState(0);
+  const [couponCount, setCouponCount] = useState(0);
 
   const loadAdminBadgeCount = useCallback(
     async (request, setValue) => {
@@ -90,6 +91,13 @@ const MainLayout = ({ children }) => {
     );
   }, [loadAdminBadgeCount]);
 
+  const loadCouponCount = useCallback(async () => {
+    await loadAdminBadgeCount(
+      () => couponApi.getAll({ page: 1, pageSize: 1 }),
+      setCouponCount,
+    );
+  }, [loadAdminBadgeCount]);
+
   useEffect(() => {
     if (!adminUser) {
       return undefined;
@@ -100,12 +108,14 @@ const MainLayout = ({ children }) => {
     loadOpenReturnCount();
     loadPendingDepositsCount();
     loadPendingWithdrawalsCount();
+    loadCouponCount();
     const intervalId = window.setInterval(() => {
       loadOrderCount();
       loadWaitingTransferCount();
       loadOpenReturnCount();
       loadPendingDepositsCount();
       loadPendingWithdrawalsCount();
+      loadCouponCount();
     }, 30000);
 
     const onTransferUpdated = () => {
@@ -127,6 +137,9 @@ const MainLayout = ({ children }) => {
     const onWalletWithdrawalUpdated = () => {
       loadPendingWithdrawalsCount();
     };
+    const onCouponUpdated = () => {
+      loadCouponCount();
+    };
     window.addEventListener("order-transfer-updated", onTransferUpdated);
     window.addEventListener(
       "order-return-request-updated",
@@ -138,6 +151,7 @@ const MainLayout = ({ children }) => {
       "wallet-withdrawal-updated",
       onWalletWithdrawalUpdated,
     );
+    window.addEventListener("coupon-update", onCouponUpdated);
 
     return () => {
       window.clearInterval(intervalId);
@@ -155,6 +169,7 @@ const MainLayout = ({ children }) => {
         "wallet-withdrawal-updated",
         onWalletWithdrawalUpdated,
       );
+      window.removeEventListener("coupon-update", onCouponUpdated);
     };
   }, [
     adminUser,
@@ -163,6 +178,7 @@ const MainLayout = ({ children }) => {
     loadOpenReturnCount,
     loadPendingDepositsCount,
     loadPendingWithdrawalsCount,
+    loadCouponCount,
   ]);
 
   const handleLogout = () => {
@@ -188,24 +204,6 @@ const MainLayout = ({ children }) => {
   return (
     <div className="wrapper">
       <nav className="main-header navbar navbar-expand navbar-white navbar-light">
-        <ul className="navbar-nav">
-          <li className="nav-item">
-            <button
-              type="button"
-              className="nav-link btn btn-link border-0 p-0"
-              data-widget="pushmenu"
-              aria-label="Mở hoặc đóng menu"
-            >
-              <i className="fas fa-bars"></i>
-            </button>
-          </li>
-          <li className="nav-item d-none d-sm-inline-block">
-            <Link to="/" className="nav-link">
-              Trang chủ
-            </Link>
-          </li>
-        </ul>
-
         <ul className="navbar-nav ml-auto">
           <li className="nav-item dropdown">
             <button
@@ -215,22 +213,20 @@ const MainLayout = ({ children }) => {
               aria-haspopup="true"
               aria-expanded="false"
             >
-              <i className="far fa-user"></i> {user?.name || user?.username}
+              <i className="fas fa-bars"></i> {user?.name || user?.username}
             </button>
             <div className="dropdown-menu dropdown-menu-right">
               <span className="dropdown-item dropdown-header">
                 {user?.email}
               </span>
-              <div className="dropdown-divider"></div>
 
               <button className="dropdown-item" type="button">
                 <Link to="/shop">Vào trang UI</Link>
               </button>
+
               {adminUser && (
                 <button className="dropdown-item" type="button">
-                  <Link to="/profile">
-                    <i className="far fa-id-card mr-2"></i> Thông tin cá nhân
-                  </Link>
+                  <Link to="/profile">Thông tin cá nhân</Link>
                 </button>
               )}
               <button
@@ -246,22 +242,9 @@ const MainLayout = ({ children }) => {
       </nav>
 
       <aside className="main-sidebar sidebar-dark-primary elevation-4">
-        <Link to="/" className="brand-link">
-          <span className="brand-text font-weight-light ml-3">
-            <b>Tạp Hoá</b> HSV
-          </span>
-        </Link>
-
         <div className="sidebar">
-          <div className="user-panel mt-3 pb-3 mb-3 d-flex">
-            <div className="image">
-              <i className="fas fa-user-circle fa-2x text-light"></i>
-            </div>
-            <div className="info">
-              <span className="d-block text-light">
-                {user?.name || user?.username}
-              </span>
-            </div>
+          <div className="user-panel mt-3 pb-3 mb-3 text-center">
+            <span className="d-block text-light">Thanh DashBoard</span>
           </div>
 
           <nav className="mt-2">
@@ -330,7 +313,14 @@ const MainLayout = ({ children }) => {
                     className={`nav-link ${isActive("/coupons")}`}
                   >
                     <i className="nav-icon fas fa-ticket-alt"></i>
-                    <p>Mã giảm giá</p>
+                    <p>
+                      Mã giảm giá
+                      {
+                        <span className="right badge badge-info ml-2">
+                          {couponCount}
+                        </span>
+                      }
+                    </p>
                   </Link>
                 </li>
               )}

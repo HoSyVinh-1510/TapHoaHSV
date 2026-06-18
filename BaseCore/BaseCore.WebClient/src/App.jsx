@@ -74,7 +74,7 @@ function AppRoutes() {
         }
       />
 
-      {/* Shop routes — người dùng thường */}
+      {/* Shop routes — người dùng */}
       {shopRoute("/shop", <ShopHome />)}
       {shopRoute("/shop/list", <ShopList />)}
       {shopRoute("/shop/cart", <ShopCart />)}

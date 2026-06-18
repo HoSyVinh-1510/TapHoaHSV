@@ -354,7 +354,7 @@ const PendingWithdrawals = () => {
                 </h5>
                 <button
                   type="button"
-                  className="close text-white"
+                  className="close text-black"
                   onClick={() => setShowQrModal(false)}
                 >
                   <span>&times;</span>
